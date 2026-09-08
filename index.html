@@ -191,6 +191,12 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <span class="badge badge-blue hidden" id="viewBadge">0 views</span>
   </div>
   <div class="pb">
+    <div class="sl" style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+      <span>Get schema (<span id="schemaCmdDialect">SQLite</span>)</span>
+      <button class="btn xs" id="btnCopySchemaCmd">⎘ Copy</button>
+    </div>
+    <pre id="schemaCmdOut" style="background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--mono);font-size:8px;padding:7px;white-space:pre-wrap;word-break:break-word;line-height:1.6;margin:0 0 8px"></pre>
+
     <div class="sl">Import DDL or sqlite_master output</div>
     <textarea class="ddl-ta" id="ddlIn" rows="7" oninput="checkDDLContent(this)" placeholder="Paste sqlite_master INSERT output OR raw CREATE TABLE DDL here.
 
@@ -1164,8 +1170,40 @@ document.getElementById('btnRun2').onclick = runQuery;
 // DIALECT
 // ══════════════════════════════════════════════════════
 document.querySelectorAll('.dbtn').forEach(b => {
-  b.onclick = () => { document.querySelectorAll('.dbtn').forEach(x => x.classList.remove('on')); b.classList.add('on'); S.dialect = b.dataset.d; renderSQL(); };
+  b.onclick = () => { document.querySelectorAll('.dbtn').forEach(x => x.classList.remove('on')); b.classList.add('on'); S.dialect = b.dataset.d; renderSQL(); renderSchemaCmd(); };
 });
+
+// ══════════════════════════════════════════════════════
+// SCHEMA EXTRACTION COMMAND (per dialect, copy-paste ready)
+// ══════════════════════════════════════════════════════
+const SCHEMA_CMDS = {
+  sqlite: {
+    label: 'SQLite',
+    cmd: `SELECT type, name, tbl_name, sql
+FROM sqlite_master
+WHERE sql IS NOT NULL
+ORDER BY type, name;`
+  },
+  mysql: {
+    label: 'MySQL',
+    cmd: `mysqldump --no-data --skip-comments -u USER -p DBNAME > schema.sql`
+  },
+  postgres: {
+    label: 'PostgreSQL',
+    cmd: `pg_dump --schema-only --no-owner --no-privileges -d DBNAME > schema.sql`
+  }
+};
+
+function renderSchemaCmd() {
+  const info = SCHEMA_CMDS[S.dialect] || SCHEMA_CMDS.sqlite;
+  document.getElementById('schemaCmdDialect').textContent = info.label;
+  document.getElementById('schemaCmdOut').textContent = info.cmd;
+}
+document.getElementById('btnCopySchemaCmd').onclick = () => {
+  const info = SCHEMA_CMDS[S.dialect] || SCHEMA_CMDS.sqlite;
+  navigator.clipboard.writeText(info.cmd).then(() => toast('Copied!'));
+};
+renderSchemaCmd();
 
 // ══════════════════════════════════════════════════════
 // PARSE DDL BUTTON
