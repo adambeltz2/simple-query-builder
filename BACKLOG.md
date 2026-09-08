@@ -81,6 +81,12 @@ Currently all WHERE conditions are in a flat list with AND/OR between them. Supp
 **F-031 — Add `BETWEEN` operator to WHERE builder** 🟡  
 **Added 2026-08-26.** The WHERE operator list (`=, !=, <, >, <=, >=, LIKE, NOT LIKE, IN, NOT IN, IS NULL, IS NOT NULL`) is missing `BETWEEN`/`NOT BETWEEN`, a very common condition. Needs a two-value input (low/high) instead of the single `value` field the other operators use.
 
+**F-033 — Composite (multi-column) join keys** 🟡  
+**Added 2026-09-08.** A join is currently a single `{lt, lc, rt, rc}` column pair. Schemas with composite keys need `ON a.x = b.x AND a.y = b.y`. Extend the join model to hold multiple column pairs per join and render/parse the `AND`-joined `ON` clause accordingly.
+
+**F-036 — Type-mismatch hints in WHERE conditions** 🟢  
+**Added 2026-09-08.** The WHERE builder doesn't warn when a condition compares a TEXT column against a bare numeric literal (or vice versa), which silently produces a query that returns no rows in strict-typed dialects. Add an inline hint (not a hard block) based on the column's parsed type.
+
 ### Canvas
 
 **F-012 — Collapse table nodes** 🟡  
@@ -115,6 +121,9 @@ For simple single-table queries, allow clicking a result cell to edit the value 
 **F-021 — Load SQLite .db file** 🔴  
 Allow uploading an actual `.sqlite` or `.db` file via drag-and-drop, loading it into sql.js so users can query real data without manual seed scripts.
 
+**F-035 — EXPLAIN QUERY PLAN view** 🟢  
+**Added 2026-09-08.** sql.js supports `EXPLAIN QUERY PLAN`. Add a tab/toggle next to Results that runs the built query prefixed with `EXPLAIN QUERY PLAN` and displays the plan — a useful learning aid alongside the visual builder.
+
 ### SQL Reverse Parse (↙ Parse SQL)
 
 **F-022 — Support CTEs (WITH clauses)** 🟡  
@@ -146,6 +155,12 @@ Persist the current query (joins, selected columns, WHERE conditions) to `localS
 **F-030 — Share query via URL** 🟢  
 Encode the current query state in the URL hash so it can be shared as a link.
 
+**F-034 — Named, saved schemas** 🟡  
+**Added 2026-09-08.** Only one schema can be loaded at a time; re-parsing replaces it. Allow saving the current schema under a name in `localStorage` and switching between saved schemas via a dropdown, rather than requiring re-paste.
+
+**F-037 — Keyboard-accessible canvas interactions** 🟡  
+**Added 2026-09-08.** Dragging table headers and drawing joins by dragging column-port dots are mouse-only; there's no keyboard path to move a node or create a join, and port dots/nodes lack ARIA labels. Add a keyboard-operable alternative (e.g. arrow-key nudge when a node is focused, an "Add Join" flow via the existing `+ Add` button paired with select dropdowns) and basic ARIA labeling for screen readers.
+
 ---
 
 ## 🏗 Infrastructure
@@ -157,8 +172,9 @@ Add a `.github/workflows/deploy.yml` that auto-publishes `index.html` to GitHub 
 Add `test/sample_schema.sql` containing the sqlite_master INSERT output used for manual testing. Needed for reproducible bug reports.  
 *Update 2026-08-26:* a minimal 2-table repro (one table with a `CHECK`/`DEFAULT ''`) was enough to reproduce B-001 in isolation outside the browser (Node, by extracting the parser functions and running them directly) — that fixture is a good starting point for this and for I-003's smoke test.
 
-**I-003 — Automated smoke test** 🟡  
-A simple Node.js or Playwright script that loads `index.html`, pastes the sample schema, clicks Parse, and asserts that N tables are found. Blocks B-001 regression.
+**I-003 — Automated smoke test** ✅ Fixed  
+A simple Node.js or Playwright script that loads `index.html`, pastes the sample schema, clicks Parse, and asserts that N tables are found. Blocks B-001 regression.  
+*Update 2026-09-08:* Done — `tests/smoke.spec.js` (Playwright) covers this: loads the app, uses the built-in Sample DDL, clicks Parse, and asserts the table badge updates and SQL generation works. See also `tests/schema-command.spec.js` for the per-dialect schema-command box. Run via `npm install && npm test`.
 
 ---
 
@@ -179,3 +195,4 @@ A simple Node.js or Playwright script that loads `index.html`, pastes the sample
 | — | + Add All to Canvas / Remove All buttons | v0.4.0 |
 | B-006 | Version footer fallback text out of sync with APP_VERSION | v0.4.3 |
 | B-001 | sqlite_master format: parseDDL returned 0 tables (double-unescape bug in extractFromSqliteMaster) | v0.4.4 |
+| I-003 | Automated smoke test (Playwright: `tests/smoke.spec.js`, `tests/schema-command.spec.js`) | — |
