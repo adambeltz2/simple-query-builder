@@ -22,8 +22,12 @@ Tables now auto-populate schema panel on parse; "+ Add All to Canvas" added.
 ### B-004 — sqlite_master extractor breaks on extra unquoted columns (e.g. `rootpage`) 🟡
 **Added 2026-08-26.** `extractQuotedValues` reads exactly 4 consecutive single-quoted values per tuple and only skips whitespace/commas between them. A dump that includes the unquoted `rootpage` integer column between `tbl_name` and `sql` (common output from `SELECT *`, `.dump`, or several DB GUI "export as SQL" features, not just the README's recommended 4-column `SELECT`) makes the state machine stop early — it hits a bare digit, which isn't `'`, `,`, or whitespace, and bails with only 3 values collected. Result: 0 statements extracted, with no hint to the user about *why*. Consider skipping runs of non-quote/non-comma characters (not just whitespace) between quoted values, or locating the `sql` value by scanning for the *last* quoted value before the tuple's closing `)` instead of assuming a fixed 4-value order.
 
-### B-005 — WHERE values aren't escaped when generating SQL 🟡
-**Added 2026-08-26.** In `buildSQL()`, a WHERE value is interpolated directly: `` `${w.op} '${w.val}'` ``. A value containing an apostrophe (e.g. `O'Brien`) produces invalid/broken SQL when run or copied — the generated string has an unbalanced quote. Fix: escape by doubling embedded `'` in `w.val` before interpolating (`w.val.replace(/'/g, "''")`), matching the app's own quoting conventions elsewhere.
+### B-005 — WHERE values aren't escaped when generating SQL ✅ Fixed
+**Added 2026-08-26.** In `buildSQL()`, a WHERE value is interpolated directly: `` `${w.op} '${w.val}'` ``. A value containing an apostrophe (e.g. `O'Brien`) produces invalid/broken SQL when run or copied — the generated string has an unbalanced quote.
+
+**Fix (2026-09-08):** added an `esc()` helper in `buildSQL()` that doubles embedded `'` before interpolating, applied to both the `LIKE`/`NOT LIKE` branch and the generic string-literal branch. `IN`/`NOT IN` values are left as-is since that field is a raw, user-typed parenthesized list (e.g. `'a','b'`) rather than a single literal.
+
+**Related fix found while testing:** `hl()` (SQL syntax highlighter) generated malformed HTML for *every* query — a later regex step (matching double-quoted identifiers) was re-scanning its own previously-inserted `class="..."` attributes and wrapping them again, corrupting the DOM. Fixed by switching the highlighter's injected `<span>` attributes to single quotes so they no longer collide with the double-quote-identifier regex. Covered by a new Playwright regression test (`tests/smoke.spec.js`).
 
 ### B-006 — Version footer fallback text goes stale 🟢 Fixed in v0.4.3
 The `#verStr` span shipped with a hardcoded placeholder (`v0.4.1`) that didn't match `APP_VERSION` (`0.4.2`). Cosmetic only — the closing `<script>` IIFE overwrites it on load — but misleading if that IIFE ever fails to run. Fixed by clearing the placeholder so there's nothing stale to show before the real version is injected.
@@ -179,3 +183,4 @@ A simple Node.js or Playwright script that loads `index.html`, pastes the sample
 | — | + Add All to Canvas / Remove All buttons | v0.4.0 |
 | B-006 | Version footer fallback text out of sync with APP_VERSION | v0.4.3 |
 | B-001 | sqlite_master format: parseDDL returned 0 tables (double-unescape bug in extractFromSqliteMaster) | v0.4.4 |
+| B-005 | WHERE values with apostrophes broke generated SQL; also fixed a `hl()` syntax-highlighter HTML corruption bug found while testing | — |
