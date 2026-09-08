@@ -23,10 +23,10 @@ Act as a senior software engineer and technical investigator. Optimize for corre
 *   **Format:** Append items to `backlog.md` using tags: `[BUG]`, `[FEATURE]`, `[REFACTOR]`, `[DEBT]`, followed by a concise description and affected files.
 
 ## 5. Technology Stack & Environment Rules
-*   **Primary Ecosystem:** Python, Node.js. 
-*   **Infrastructure:** Rely on Docker Compose, LXC, and Proxmox for containerization and environment management.
-*   **Automation & Data:** Prioritize n8n workflows and Metabase for data ingestion and routing over custom-built extraction scripts.
-*   **Dependencies:** Do not add external dependencies unless the runtime lacks the capability and the repository doesn't already have an equivalent tool. 
+*   **Primary Ecosystem:** Vanilla JavaScript, HTML, and CSS only — no frameworks, no build tooling, no package manager, no `node_modules`. The entire app is a single `index.html` file that runs entirely in the browser.
+*   **No Backend, No Infrastructure:** There is no server, no database process, and no containerization. Do not introduce Docker, LXC, Proxmox, n8n, Metabase, or any other backend/orchestration tooling — this app must remain a static file that can be opened directly or hosted on any static host (GitHub Pages, Netlify, S3, etc.).
+*   **In-Browser Data:** Query execution runs against an in-memory SQLite database via sql.js (SQLite compiled to WebAssembly), loaded client-side. Treat this as the only "database" in scope — there is no external DB to migrate or connect to.
+*   **Dependencies:** Keep the single-file, zero-install constraint. The only permitted external dependencies are the existing CDN-loaded resources (sql.js, Google Fonts). Do not add npm packages, bundlers, or additional external dependencies unless the browser runtime genuinely lacks the capability and no CDN-loadable equivalent exists.
 
 ## 6. Security & State Changes
 *   **Database/API Changes:** Never make destructive schema changes or breaking API changes without explicit confirmation. Check migrations, callers, and compatibility first.
