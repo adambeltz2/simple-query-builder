@@ -398,9 +398,13 @@ const S = {
 };
 
 let DB = null;
-initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}` })
-  .then(SQL => { DB = new SQL.Database(); })
-  .catch(e => console.error('sql.js failed', e));
+if (typeof initSqlJs === 'function') {
+  initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}` })
+    .then(SQL => { DB = new SQL.Database(); })
+    .catch(e => console.error('sql.js failed', e));
+} else {
+  console.error('sql.js failed to load from CDN — Run Query will be unavailable, but the rest of the app still works.');
+}
 
 // ══════════════════════════════════════════════════════
 // DDL PARSER — handles raw DDL AND sqlite_master INSERTs

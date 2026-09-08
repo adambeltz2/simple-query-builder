@@ -1,0 +1,12 @@
+{
+  "name": "querycraft",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Test tooling for QueryCraft (dev-only; the shipped app remains a dependency-free index.html)",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.47.0"
+  }
+}
