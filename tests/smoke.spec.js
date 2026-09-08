@@ -26,4 +26,19 @@ test.describe('Core smoke path', () => {
     await expect(page.locator('#sqlOut')).toContainText('FROM');
     await expect(page.locator('#sqlOut')).toContainText('customers');
   });
+
+  test('WHERE values containing an apostrophe are escaped in the generated SQL (B-005)', async ({ page }) => {
+    await page.goto('/index.html');
+    await page.click('#btnSample');
+    await page.click('#btnParse');
+    await page.click('#btnAddAll');
+    await page.selectOption('#fromSel', 'customers');
+    await page.click('#btnAddWhere');
+    const row = page.locator('.where-row').first();
+    await row.locator('select').nth(0).selectOption('customers.name');
+    await row.locator('input.ti').fill("O'Brien");
+    const sql = await page.locator('#sqlOut').innerText();
+    expect(sql).toContain("O''Brien");
+    expect(sql).not.toMatch(/[^']'O'Brien'[^']/);
+  });
 });

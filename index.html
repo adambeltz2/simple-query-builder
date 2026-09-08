@@ -675,10 +675,11 @@ function buildSQL() {
       const pre = i === 0 ? '  ' : `  ${w.logic} `;
       const [t, c] = w.col.split('.');
       let vp;
+      const esc = v => String(v).replace(/'/g, "''");
       if (['IS NULL', 'IS NOT NULL'].includes(w.op)) vp = w.op;
       else if (['IN', 'NOT IN'].includes(w.op)) vp = `${w.op} (${w.val})`;
-      else if (w.op === 'LIKE' || w.op === 'NOT LIKE') vp = `${w.op} '${w.val}'`;
-      else { const num = !isNaN(w.val) && w.val !== ''; vp = `${w.op} ${num ? w.val : "'" + w.val + "'"}`; }
+      else if (w.op === 'LIKE' || w.op === 'NOT LIKE') vp = `${w.op} '${esc(w.val)}'`;
+      else { const num = !isNaN(w.val) && w.val !== ''; vp = `${w.op} ${num ? w.val : "'" + esc(w.val) + "'"}`; }
       lines.push(`${pre}${q(t)}.${q(c)} ${vp}`);
     });
   }
@@ -696,10 +697,10 @@ function hl(sql) {
   const kws = /\b(SELECT|DISTINCT|FROM|WHERE|JOIN|LEFT|RIGHT|INNER|FULL|OUTER|CROSS|ON|AND|OR|ORDER|BY|GROUP|HAVING|LIMIT|OFFSET|AS|IS|NULL|NOT|IN|LIKE|BETWEEN|ASC|DESC|CREATE|TABLE|VIEW|INDEX|PRIMARY|KEY|REFERENCES|FOREIGN|CONSTRAINT|INSERT|UPDATE|DELETE)\b/g;
   return sql
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/'[^']*'/g, s => `<span class="val-c">${s}</span>`)
-    .replace(kws, m => `<span class="kw">${m}</span>`)
-    .replace(/`[^`]+`|"[^"]+"/g, s => `<span class="tbl-c">${s}</span>`)
-    .replace(/--[^\n]*/g, s => `<span class="cmt-c">${s}</span>`);
+    .replace(/'[^']*'/g, s => `<span class='val-c'>${s}</span>`)
+    .replace(kws, m => `<span class='kw'>${m}</span>`)
+    .replace(/`[^`]+`|"[^"]+"/g, s => `<span class='tbl-c'>${s}</span>`)
+    .replace(/--[^\n]*/g, s => `<span class='cmt-c'>${s}</span>`);
 }
 
 // ══════════════════════════════════════════════════════
