@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>QueryCraft</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0d0f14;--panel:#13161e;--surface:#1a1e2a;--border:#272c3d;
+  --accent:#4fffb0;--blue:#3d8fff;--red:#ff6b6b;--gold:#f59e0b;--purple:#c792ea;--orange:#f78c6c;
+  --text:#e8ecf4;--muted:#6b7394;
+  --mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden}
+.app{display:grid;grid-template-rows:48px 1fr;height:100vh}
+.topbar{display:flex;align-items:center;gap:10px;padding:0 14px;border-bottom:1px solid var(--border);background:var(--panel)}
+.logo{font-size:16px;font-weight:800;letter-spacing:-.5px;color:var(--accent)}
+.logo span{color:var(--text)}
+.vsep{width:1px;height:18px;background:var(--border);flex-shrink:0}
+.dtoggle{display:flex;gap:2px;background:var(--bg);border-radius:5px;padding:2px}
+.dbtn{padding:3px 8px;border-radius:3px;font-size:10px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:var(--sans);transition:all .15s}
+.dbtn.on{background:var(--surface);color:var(--accent);border:1px solid var(--border)}
+.ml{margin-left:auto}
+.ws{display:grid;grid-template-columns:240px 1fr 300px;height:100%;overflow:hidden}
+.panel{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border)}
+.panel:last-child{border-right:none;border-left:1px solid var(--border)}
+.ph{padding:8px 12px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);background:var(--panel);flex-shrink:0;display:flex;align-items:center;gap:6px}
+.badge{background:var(--accent);color:#000;border-radius:8px;padding:1px 5px;font-size:8px;font-weight:700}
+.badge-blue{background:var(--blue);color:#fff}
+.badge-muted{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+.pb{flex:1;overflow-y:auto;padding:10px}
+.pb::-webkit-scrollbar{width:3px}
+.pb::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.btn{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:5px;border:1px solid var(--border);font-family:var(--sans);font-size:10px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--text);white-space:nowrap;transition:all .15s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#000}
+.btn.pri:hover{background:#3de89a}
+.btn.dng{border-color:var(--red);color:var(--red);background:transparent}
+.btn.dng:hover{background:var(--red);color:#fff}
+.btn.blue{border-color:var(--blue);color:var(--blue);background:transparent}
+.btn.blue:hover{background:var(--blue);color:#fff}
+.btn.sm{padding:3px 7px;font-size:9px}
+.btn.xs{padding:2px 5px;font-size:9px}
+.row{display:flex;gap:5px;flex-wrap:wrap}
+.ddl-ta{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--mono);font-size:9px;padding:7px;resize:none;outline:none;line-height:1.6}
+.ddl-ta:focus{border-color:var(--accent)}
+.sl{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.msg-ok{color:var(--accent);font-size:9px;font-family:var(--mono);padding:4px 7px;background:rgba(79,255,176,.06);border-radius:4px;margin-top:5px}
+.msg-err{color:var(--red);font-size:9px;font-family:var(--mono);padding:4px 7px;background:rgba(255,107,107,.08);border-radius:4px;border:1px solid rgba(255,107,107,.2);margin-top:5px}
+.msg-info{color:var(--blue);font-size:9px;font-family:var(--mono);padding:4px 7px;background:rgba(61,143,255,.06);border-radius:4px;margin-top:5px}
+
+/* schema table cards */
+.tc{background:var(--surface);border:1px solid var(--border);border-radius:6px;margin-bottom:5px;overflow:hidden;transition:border-color .15s}
+.tc:hover{border-color:rgba(61,143,255,.4)}
+.tch{padding:5px 9px;font-size:10px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;border-bottom:1px solid var(--border)}
+.tch.on-canvas{color:var(--accent);border-color:rgba(79,255,176,.2)}
+.tch.off-canvas{color:var(--blue)}
+.tch-name{flex:1}
+.tch-meta{font-size:8px;color:var(--muted);font-weight:400}
+.tcols{padding:2px 0}
+.tci{display:flex;align-items:center;gap:4px;padding:2px 9px;font-size:9px;font-family:var(--mono);color:var(--muted)}
+.tci-name{color:var(--text)}
+.tci-type{font-size:8px}
+.icon-pk{color:var(--gold);font-size:7px}
+.icon-fk{color:var(--blue);font-size:7px}
+
+/* fk suggestions */
+.fk-list{margin-top:6px}
+.fk-chip{font-size:9px;color:var(--blue);cursor:pointer;padding:3px 7px;background:rgba(61,143,255,.08);border-radius:3px;border:1px solid rgba(61,143,255,.15);margin-bottom:3px;display:flex;align-items:center;gap:4px;line-height:1.4}
+.fk-chip:hover{background:rgba(61,143,255,.2)}
+.fk-chip.added{color:var(--accent);background:rgba(79,255,176,.06);border-color:rgba(79,255,176,.2);cursor:default}
+
+/* schema section tabs */
+.stabs{display:flex;gap:2px;margin-bottom:7px;background:var(--bg);border-radius:4px;padding:2px}
+.stab{padding:3px 8px;border-radius:3px;font-size:9px;font-weight:600;cursor:pointer;color:var(--muted);border:none;background:transparent;font-family:var(--sans);transition:all .15s}
+.stab.on{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+
+/* center */
+.center{display:flex;flex-direction:column;overflow:hidden}
+.center-top{border-bottom:1px solid var(--border);background:var(--panel);padding:6px 10px;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.canvas-area{position:relative;overflow:hidden;flex-shrink:0}
+.canvas-area::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.05) 1px,transparent 1px);background-size:22px 22px;pointer-events:none;z-index:0}
+.c-svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.c-tables{position:absolute;top:0;left:0;z-index:2}
+.c-bar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:4px;background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:4px 7px;z-index:10;align-items:center}
+.zoom-lbl{font-size:9px;color:var(--muted);min-width:30px;text-align:center}
+.mode-pill{font-size:8px;font-weight:700;padding:2px 6px;border-radius:3px;background:rgba(79,255,176,.08);color:var(--accent);border:1px solid rgba(79,255,176,.15)}
+.mode-pill.join-active{background:rgba(61,143,255,.15);color:var(--blue);border-color:rgba(61,143,255,.3)}
+
+/* table nodes */
+.tnode{position:absolute;background:var(--panel);border:1.5px solid var(--border);border-radius:7px;min-width:170px;max-width:230px;cursor:default;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.tnode:hover{border-color:var(--blue)}
+.tnode.sel{border-color:var(--accent)}
+.tnode-hdr{padding:6px 9px;font-size:11px;font-weight:700;color:var(--blue);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:move;border-radius:5px 5px 0 0;user-select:none;gap:6px}
+.tnode-hdr-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tnode-x{cursor:pointer;color:var(--muted);font-size:11px;line-height:1;flex-shrink:0}
+.tnode-x:hover{color:var(--red)}
+.tnode-col{display:flex;align-items:center;gap:4px;padding:3px 9px;font-size:9px;font-family:var(--mono);cursor:pointer;border-bottom:1px solid rgba(255,255,255,.025);position:relative;transition:background .1s}
+.tnode-col:last-child{border-bottom:none}
+.tnode-col:hover{background:rgba(255,255,255,.04)}
+.tnode-col.selcol{background:rgba(79,255,176,.08);color:var(--accent)}
+.port{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg);flex-shrink:0;cursor:crosshair;transition:all .15s}
+.tnode-col:hover .port{border-color:var(--blue);background:var(--blue)}
+.tnode-col.selcol .port{border-color:var(--accent);background:rgba(79,255,176,.3)}
+.col-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.col-type{color:var(--muted);font-size:8px;flex-shrink:0}
+
+/* builder */
+.builder{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:7px;border-top:1px solid var(--border)}
+.builder::-webkit-scrollbar{width:3px}
+.builder::-webkit-scrollbar-thumb{background:var(--border)}
+.sc{background:var(--panel);border:1px solid var(--border);border-radius:7px;overflow:hidden}
+.sc-h{padding:6px 10px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.02)}
+.sc-b{padding:8px 10px}
+.si{background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--sans);font-size:10px;padding:3px 6px;outline:none;cursor:pointer}
+.si:focus{border-color:var(--accent)}
+.ti{background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:9px;padding:3px 6px;outline:none;flex:1;min-width:50px}
+.ti:focus{border-color:var(--accent)}
+.ni{width:60px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:9px;padding:3px 6px;outline:none}
+.ni:focus{border-color:var(--accent)}
+.kwd{font-family:var(--mono);font-size:9px;color:var(--muted);font-weight:600;white-space:nowrap}
+.join-row{display:flex;align-items:center;gap:4px;margin-bottom:5px;flex-wrap:wrap;padding:6px 7px;background:var(--surface);border-radius:5px;border:1px solid var(--border)}
+.where-row{display:flex;align-items:center;gap:4px;margin-bottom:4px;flex-wrap:wrap;padding:5px 7px;background:var(--surface);border-radius:5px;border:1px solid var(--border)}
+.col-group{margin-bottom:7px}
+.col-group-lbl{font-size:8px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;padding:2px 0;border-bottom:1px solid var(--border)}
+.col-check{display:flex;align-items:center;gap:5px;padding:2px 0;font-size:9px;font-family:var(--mono);cursor:pointer}
+.col-check:hover{color:var(--accent)}
+.col-check input{accent-color:var(--accent);cursor:pointer;flex-shrink:0}
+.col-check-type{color:var(--muted);font-size:8px;margin-left:2px}
+.es{text-align:center;color:var(--muted);padding:12px;font-size:10px}
+
+/* right panel */
+.tabs{display:flex;gap:2px;background:var(--bg);border-radius:5px;padding:2px;margin-bottom:7px}
+.tab{padding:3px 9px;border-radius:3px;font-size:9px;font-weight:600;cursor:pointer;color:var(--muted);border:none;background:transparent;font-family:var(--sans);transition:all .15s}
+.tab.on{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.sql-out{background:var(--bg);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:9px;padding:9px;line-height:1.9;white-space:pre-wrap;word-break:break-all;min-height:80px;margin-bottom:7px;max-height:300px;overflow-y:auto}
+.sql-out::-webkit-scrollbar{width:3px}
+.sql-out::-webkit-scrollbar-thumb{background:var(--border)}
+.kw{color:var(--purple);font-weight:700}
+.tbl-c{color:var(--blue)}
+.val-c{color:var(--orange)}
+.cmt-c{color:var(--muted)}
+.res-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:5px;max-height:280px;overflow-y:auto}
+.res-wrap::-webkit-scrollbar{width:3px;height:3px}
+.res-wrap::-webkit-scrollbar-thumb{background:var(--border)}
+table{width:100%;border-collapse:collapse;font-size:9px;font-family:var(--mono)}
+thead{background:var(--surface);position:sticky;top:0}
+th{padding:4px 7px;text-align:left;color:var(--accent);border-bottom:1px solid var(--border);font-weight:700;white-space:nowrap}
+td{padding:3px 7px;border-bottom:1px solid rgba(255,255,255,.03);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.null-v{color:var(--muted);font-style:italic}
+.rc{font-size:8px;color:var(--muted);margin-top:3px;text-align:right}
+
+/* modal */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:flex;align-items:center;justify-content:center}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:18px;width:520px;max-width:95vw}
+.modal h3{font-size:13px;font-weight:700;margin-bottom:8px;color:var(--accent)}
+
+.toast{position:fixed;bottom:14px;right:14px;background:var(--surface);border:1px solid var(--accent);color:var(--accent);padding:7px 12px;border-radius:6px;font-size:10px;font-family:var(--mono);font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s;z-index:200}
+.toast.show{opacity:1}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="topbar">
+  <div class="logo">Query<span>Craft</span></div>
+  <div class="vsep"></div>
+  <div class="dtoggle" id="dtoggle">
+    <button class="dbtn on" data-d="sqlite">SQLite</button>
+    <button class="dbtn" data-d="mysql">MySQL</button>
+    <button class="dbtn" data-d="postgres">PostgreSQL</button>
+  </div>
+  <div class="vsep"></div>
+  <button class="btn sm" id="btnPasteSQL">↙ Parse SQL</button>
+  <div class="ml row">
+    <button class="btn sm" id="btnCopyTop">⎘ Copy</button>
+    <button class="btn sm pri" id="btnRunTop">▶ Run</button>
+  </div>
+</div>
+
+<div class="ws">
+
+<!-- LEFT -->
+<div class="panel">
+  <div class="ph">Schema
+    <span class="badge" id="tblBadge">0</span>
+    <span class="badge badge-blue hidden" id="viewBadge">0 views</span>
+  </div>
+  <div class="pb">
+    <div class="sl">Import DDL or sqlite_master output</div>
+    <textarea class="ddl-ta" id="ddlIn" rows="7" oninput="checkDDLContent(this)" placeholder="Paste sqlite_master INSERT output OR raw CREATE TABLE DDL here.
+
+For sqlite_master, run:
+  SELECT type, name, tbl_name, sql
+  FROM sqlite_master
+  WHERE sql IS NOT NULL
+  ORDER BY type, name;
+
+DO NOT paste SELECT queries here.
+Use '↙ Parse SQL' in topbar for SELECT queries."></textarea>
+    <div class="row" style="margin-top:5px">
+      <button class="btn sm pri" id="btnParse">Parse</button>
+      <button class="btn sm" id="btnSample">Sample</button>
+      <button class="btn sm dng" id="btnClearSchema">Clear</button>
+    </div>
+    <div id="parseMsg"></div>
+    <div id="debugPanel" style="display:none;margin-top:6px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:6px;font-family:var(--mono);font-size:8px;color:var(--muted);max-height:120px;overflow-y:auto;line-height:1.6" id="debugOut"></div>
+
+    <div style="margin-top:8px" id="schemaPanel">
+      <div class="stabs">
+        <button class="stab on" data-s="tables">Tables</button>
+        <button class="stab" data-s="fk">FK Relationships</button>
+        <button class="stab" data-s="views">Views</button>
+      </div>
+
+      <div id="sTables">
+        <div class="row" style="margin-bottom:6px">
+          <button class="btn xs" id="btnAddAll">+ Add All to Canvas</button>
+          <button class="btn xs dng" id="btnRemoveAll">Remove All</button>
+        </div>
+        <div id="tblList"></div>
+      </div>
+
+      <div id="sFk" class="hidden">
+        <div id="fkList"><div class="es">No FK relationships detected.</div></div>
+      </div>
+
+      <div id="sViews" class="hidden">
+        <div id="viewList"><div class="es">No views detected.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CENTER -->
+<div class="center">
+  <div class="center-top">
+    <span style="font-size:9px;color:var(--muted);font-weight:600">CANVAS</span>
+    <span style="font-size:9px;color:var(--muted)">— drag headers · drag dots to join columns</span>
+    <button class="btn sm" id="btnLayout" style="margin-left:auto">Auto Layout</button>
+    <button class="btn sm" id="btnResetView">Reset</button>
+  </div>
+
+  <div class="canvas-area" id="canvasArea" style="height:265px">
+    <svg class="c-svg" id="cSvg"></svg>
+    <div class="c-tables" id="cTables"></div>
+    <div class="c-bar">
+      <button class="btn xs" id="zOut">−</button>
+      <span class="zoom-lbl" id="zLbl">100%</span>
+      <button class="btn xs" id="zIn">+</button>
+      <div class="vsep"></div>
+      <span class="mode-pill" id="modePill">Click</span>
+    </div>
+  </div>
+
+  <div class="builder" style="padding-bottom:28px">
+
+    <div class="sc">
+      <div class="sc-h">From / Base Table</div>
+      <div class="sc-b" style="display:flex;align-items:center;gap:7px">
+        <span class="kwd">FROM</span>
+        <select class="si" id="fromSel" style="flex:1"><option value="">— select table —</option></select>
+      </div>
+    </div>
+
+    <div class="sc">
+      <div class="sc-h">Joins <button class="btn xs" id="btnAddJoin">+ Add</button></div>
+      <div class="sc-b" id="joinList"><div class="es">No joins yet — drag between column dots or click + Add</div></div>
+    </div>
+
+    <div class="sc">
+      <div class="sc-h">Select Columns
+        <div class="row"><button class="btn xs" id="btnSelAll">All</button><button class="btn xs" id="btnSelNone">None</button></div>
+      </div>
+      <div class="sc-b" id="colSel"><div class="es">Choose a FROM table first</div></div>
+    </div>
+
+    <div class="sc">
+      <div class="sc-h">Where Conditions <button class="btn xs" id="btnAddWhere">+ Add</button></div>
+      <div class="sc-b" id="whereList"><div class="es">No conditions yet</div></div>
+    </div>
+
+    <div class="sc">
+      <div class="sc-h">Order / Limit / Distinct</div>
+      <div class="sc-b" style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span class="kwd">ORDER BY</span>
+          <select class="si" id="orderCol" style="flex:1"><option value="">— none —</option></select>
+          <select class="si" id="orderDir"><option>ASC</option><option>DESC</option></select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="kwd">LIMIT</span>
+          <input type="number" class="ni" id="limitVal" placeholder="none" min="1"/>
+          <span class="kwd">DISTINCT</span>
+          <input type="checkbox" id="chkDist" style="accent-color:var(--accent)"/>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- RIGHT -->
+<div class="panel">
+  <div class="ph">SQL &amp; Results</div>
+  <div class="pb">
+    <div class="tabs">
+      <button class="tab on" data-t="sql">SQL</button>
+      <button class="tab" data-t="results">Results</button>
+      <button class="tab" data-t="seed">Seed DB</button>
+    </div>
+
+    <div id="tSQL">
+      <div class="sql-out" id="sqlOut">-- Add tables to canvas to begin</div>
+      <div class="row">
+        <button class="btn sm" id="btnCopy2" style="flex:1">⎘ Copy SQL</button>
+        <button class="btn sm pri" id="btnRun2" style="flex:1">▶ Run Query</button>
+      </div>
+    </div>
+
+    <div id="tResults" class="hidden">
+      <div id="runMsg"></div>
+      <div id="resultsArea"><div class="es">Run a query to see results</div></div>
+    </div>
+
+    <div id="tSeed" class="hidden">
+      <div class="sl">Load DDL + INSERT data into in-memory SQLite</div>
+      <textarea class="ddl-ta" id="seedIn" rows="12" style="margin-top:4px" placeholder="-- Paste CREATE TABLE + INSERT INTO statements here
+-- This populates the in-browser SQLite DB
+-- so you can run your visual queries against real data"></textarea>
+      <div class="row" style="margin-top:5px">
+        <button class="btn sm pri" id="btnSeed" style="flex:1">Load into DB</button>
+        <button class="btn sm dng" id="btnClearDB">Clear DB</button>
+      </div>
+      <div id="seedMsg" style="margin-top:5px"></div>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<!-- Parse SQL Modal -->
+<div class="modal-ov hidden" id="sqlModal">
+  <div class="modal">
+    <h3>↙ Parse SQL → Visual Builder</h3>
+    <p style="font-size:10px;color:var(--muted);margin-bottom:8px">Paste any SELECT query to load it into the builder and canvas.</p>
+    <textarea class="ddl-ta" id="sqlPaste" rows="8" placeholder="SELECT c.name, o.amount FROM customers c LEFT JOIN orders o ON c.id = o.customer_id WHERE o.status = 'shipped' ORDER BY o.amount DESC LIMIT 20;"></textarea>
+    <div class="row" style="margin-top:8px">
+      <button class="btn pri" id="btnParseSQLOk">Parse &amp; Visualize</button>
+      <button class="btn" id="btnModalClose">Cancel</button>
+    </div>
+    <div id="sqlParseMsg" style="margin-top:6px"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="ver-bar" style="position:fixed;bottom:0;left:0;right:0;height:20px;background:#0a0c10;border-top:1px solid #1e2230;display:flex;align-items:center;justify-content:space-between;padding:0 12px;z-index:50;pointer-events:none">
+  <span style="font-family:JetBrains Mono,monospace;font-size:9px;color:#3a3f55">QueryCraft</span>
+  <span style="font-family:JetBrains Mono,monospace;font-size:9px;color:#3a3f55" id="verStr"></span>
+  <span style="font-family:JetBrains Mono,monospace;font-size:9px;color:#3a3f55">MIT <div class="toast" id="toast"></div>copy; 2025</span>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+<script>
+// ══════════════════════════════════════════════════════
+// VERSION
+// ══════════════════════════════════════════════════════
+const APP_VERSION = "0.4.4";
+const BUILD_DATE  = "2026-08-26";
+
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+const S = {
+  dialect: 'sqlite',
+  tables: {},   // name -> [{name,type,pk,fk}]
+  fks: [],      // [{fromTable,fromCol,toTable,toCol}]
+  views: [],    // [{name,sql}]
+  nodes: {},    // tableName -> {x,y}
+  joins: [],    // [{type,lt,lc,rt,rc}]
+  selCols: new Set(),
+  wheres: [],
+  fromTable: '',
+  orderCol: '', orderDir: 'ASC', limit: '', distinct: false,
+  zoom: 1, panX: 0, panY: 0,
+};
+
+let DB = null;
+initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}` })
+  .then(SQL => { DB = new SQL.Database(); })
+  .catch(e => console.error('sql.js failed', e));
+
+// ══════════════════════════════════════════════════════
+// DDL PARSER — handles raw DDL AND sqlite_master INSERTs
+// ══════════════════════════════════════════════════════
+function parseDDLInput(raw) {
+  const dbg = (msg) => {
+    console.log('[QC]', msg);
+    const el = document.getElementById('debugOut');
+    if (el) { el.style.display='block'; el.innerHTML += msg + '<br>'; }
+  };
+  dbg('Input length: ' + raw.length + ' chars');
+  dbg('First 60: ' + JSON.stringify(raw.slice(0,60)));
+
+  // Detect sqlite_master INSERT format
+  const looksLikeMaster = /INSERT\s+INTO\s+sqlite_master/i.test(raw) ||
+                          raw.includes("('table',") || raw.includes("('index',") ||
+                          raw.includes("(\'table\'");
+  dbg('Looks like sqlite_master: ' + looksLikeMaster);
+
+  const sqlStatements = extractFromSqliteMaster(raw);
+  dbg('extractFromSqliteMaster: ' + sqlStatements.length + ' statements found');
+  sqlStatements.slice(0,5).forEach((s,i) => dbg('  ['+i+']: '+s.slice(0,70).replace(/\n/g,' ')));
+
+  const combined = sqlStatements.length > 0 ? sqlStatements.join(';\n') : raw;
+  const result = parseDDL(combined);
+  dbg('parseDDL: ' + Object.keys(result.tables).length + ' tables, ' + result.fks.length + ' FKs, ' + result.views.length + ' views');
+  dbg('Tables: ' + Object.keys(result.tables).slice(0,8).join(', '));
+  return result;
+}
+
+function extractFromSqliteMaster(raw) {
+  // State-machine extractor: handles '' escaped quotes correctly inside sql column values
+  const results = [];
+  // Find each row tuple starting with a known sqlite_master type
+  const rowRe = /\(\s*'(table|view|index|trigger)'/gi;
+  let m;
+  while ((m = rowRe.exec(raw)) !== null) {
+    const vals = extractQuotedValues(raw, m.index);
+    if (vals.length >= 4) {
+      // vals[3] is the sql column; extractQuotedValues already unescaped '' -> ' char-by-char
+      const sql = vals[3].trim();
+      if (/^CREATE\s+/i.test(sql)) results.push(sql);
+    }
+  }
+  console.log('[QueryCraft] extractFromSqliteMaster raw length:', raw.length, 'rowRe matches:', (raw.match(/\(\s*'(?:table|view|index|trigger)'/gi)||[]).length);
+  return results;
+}
+
+function extractQuotedValues(s, start) {
+  // Extract up to 4 single-quoted string values from a tuple starting at position `start`
+  const values = [];
+  let i = start;
+  // Advance to opening paren
+  while (i < s.length && s[i] !== '(') i++;
+  i++; // skip (
+  while (i < s.length && values.length < 4) {
+    // Skip whitespace and commas between values
+    while (i < s.length && ' \t\n\r,'.includes(s[i])) i++;
+    if (i >= s.length || s[i] !== "'") break;
+    i++; // skip opening quote
+    let val = '';
+    while (i < s.length) {
+      if (s[i] === "'") {
+        if (i + 1 < s.length && s[i + 1] === "'") {
+          val += "'"; i += 2; // '' = escaped single quote
+        } else {
+          i++; break; // closing quote
+        }
+      } else {
+        val += s[i++];
+      }
+    }
+    values.push(val);
+  }
+  return values;
+}
+
+function parseDDL(raw) {
+  const tables = {}, fks = [], views = [];
+  const allStmts = splitStmts(raw);
+  let idxCount=0, tblAttempts=0, tblSuccess=0, trgCount=0, viewCount=0;
+  for (const stmt of allStmts) {
+    const s = stmt.trim();
+    if (!s) continue;
+    if (/^CREATE\s+(?:OR\s+REPLACE\s+)?VIEW/i.test(s)) {
+      const vm = s.match(/CREATE\s+(?:OR\s+REPLACE\s+)?VIEW\s+[`"[]?(\w+)[`"\]]?/i);
+      if (vm) views.push({ name: vm[1], sql: s });
+      viewCount++; continue;
+    }
+    if (/^CREATE\s+(?:UNIQUE\s+)?INDEX/i.test(s)) { idxCount++; continue; }
+    if (/^CREATE\s+TRIGGER/i.test(s)) { trgCount++; continue; }
+    if (/^CREATE\s+TABLE/i.test(s)) {
+      tblAttempts++;
+      const tm = s.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?[`"[]?(\w+)[`"\]]?\s*\(([\s\S]+)\)\s*$/i);
+      if (!tm) {
+        console.warn('[QC] TABLE regex FAILED on:', s.slice(0,100), '...ENDS:', JSON.stringify(s.slice(-30)));
+      } else {
+        const tname = tm[1];
+        if (tname === 'sqlite_sequence') continue;
+        const cols = parseColDefs(tm[2], tname, fks);
+        if (cols.length) { tables[tname] = cols; tblSuccess++; }
+        else console.warn('[QC] parseColDefs returned 0 cols for:', tname);
+      }
+      continue;
+    }
+    if (s) console.log('[QC] unrecognized stmt:', s.slice(0,60));
+  }
+  console.log('[QC] parseDDL summary: stmts='+allStmts.length+' idx='+idxCount+' tblAttempts='+tblAttempts+' tblSuccess='+tblSuccess+' trg='+trgCount+' views='+viewCount);
+  return { tables, fks, views };
+}
+
+function splitStmts(raw) {
+  const out = [], buf = [];
+  let depth = 0, inStr = false, sc = '';
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+    if (inStr) {
+      buf.push(ch);
+      if (ch === sc && raw[i + 1] !== sc) inStr = false;
+      else if (ch === sc && raw[i + 1] === sc) { buf.push(raw[++i]); } // escaped quote
+      continue;
+    }
+    if (ch === "'" || ch === '"') { inStr = true; sc = ch; buf.push(ch); continue; }
+    if (ch === '(') depth++;
+    else if (ch === ')') depth--;
+    if (ch === ';' && depth === 0) { out.push(buf.join('')); buf.length = 0; }
+    else buf.push(ch);
+  }
+  if (buf.join('').trim()) out.push(buf.join(''));
+  return out;
+}
+
+function parseColDefs(body, tname, fks) {
+  const cols = [];
+  for (const def of splitColDefs(body)) {
+    const d = def.trim();
+    if (!d) continue;
+
+    // Table constraint: PRIMARY KEY (cols)
+    if (/^(?:CONSTRAINT\s+\w+\s+)?PRIMARY\s+KEY/i.test(d)) {
+      const m = d.match(/PRIMARY\s+KEY\s*\(([^)]+)\)/i);
+      if (m) m[1].split(',').map(c => c.trim().replace(/[`"[\]]/g, '')).forEach(c => {
+        const f = cols.find(x => x.name === c); if (f) f.pk = true;
+      });
+      continue;
+    }
+    if (/^(?:CONSTRAINT\s+\w+\s+)?UNIQUE\b/i.test(d) && !/^\w/.test(d.replace(/^CONSTRAINT\s+\w+\s+/i,''))) continue;
+    if (/^(?:CONSTRAINT\s+\w+\s+)?CHECK\b/i.test(d) && !/^\w/.test(d.replace(/^CONSTRAINT\s+\w+\s+/i,''))) continue;
+    if (/^(?:CONSTRAINT\s+\w+\s+)?FOREIGN\s+KEY/i.test(d)) {
+      const m = d.match(/FOREIGN\s+KEY\s*\(([^)]+)\)\s*REFERENCES\s+[`"[]?(\w+)[`"\]]?\s*\(([^)]+)\)/i);
+      if (m) fks.push({
+        fromTable: tname,
+        fromCol: m[1].trim().replace(/[`"[\]]/g, ''),
+        toTable: m[2].trim(),
+        toCol: m[3].trim().replace(/[`"[\]]/g, '')
+      });
+      continue;
+    }
+
+    // Column definition — must start with identifier
+    const parts = d.split(/\s+/);
+    const name = parts[0].replace(/[`"[\]]/g, '');
+    if (!name || /^(CONSTRAINT|KEY|INDEX|UNIQUE|CHECK|PRIMARY|FOREIGN)$/i.test(name)) continue;
+    const rawType = parts[1] || 'TEXT';
+    const type = rawType.replace(/\(.*\)/, '').toUpperCase();
+    const isPK = /\bPRIMARY\s+KEY\b/i.test(d);
+    const fkm = d.match(/\bREFERENCES\s+[`"[]?(\w+)[`"\]]?\s*\(([^)]+)\)/i);
+    if (fkm) fks.push({ fromTable: tname, fromCol: name, toTable: fkm[1], toCol: fkm[2].trim().replace(/[`"[\]]/g, '') });
+    cols.push({ name, type, pk: isPK, fk: !!fkm });
+  }
+  return cols;
+}
+
+function splitColDefs(body) {
+  const out = [], buf = [];
+  let depth = 0, inStr = false, sc = '';
+  for (const ch of body) {
+    if (inStr) { buf.push(ch); if (ch === sc) inStr = false; continue; }
+    if (ch === "'" || ch === '"') { inStr = true; sc = ch; buf.push(ch); continue; }
+    if (ch === '(') depth++;
+    else if (ch === ')') depth--;
+    if (ch === ',' && depth === 0) { out.push(buf.join('')); buf.length = 0; }
+    else buf.push(ch);
+  }
+  if (buf.length) out.push(buf.join(''));
+  return out;
+}
+
+// ══════════════════════════════════════════════════════
+// SQL → VISUAL PARSER
+// ══════════════════════════════════════════════════════
+function parseSQL(sql) {
+  const s = sql.replace(/\s+/g, ' ').replace(/;$/, '').trim();
+  const selM = s.match(/SELECT\s+(DISTINCT\s+)?([\s\S]+?)\s+FROM\s/i);
+  if (!selM) return null;
+  const distinct = !!selM[1], colsPart = selM[2].trim();
+  const fromM = s.match(/FROM\s+[`"[]?(\w+)[`"\]]?(?:\s+(?:AS\s+)?[`"[]?(\w+)[`"\]]?)?/i);
+  if (!fromM) return null;
+  const fromTable = fromM[1], fromAlias = fromM[2] || fromM[1];
+  const aliases = { [fromAlias]: fromTable, [fromTable]: fromTable };
+
+  const joins = [];
+  const jRe = /((?:INNER|LEFT(?:\s+OUTER)?|RIGHT(?:\s+OUTER)?|FULL(?:\s+OUTER)?|CROSS)\s+)?JOIN\s+[`"[]?(\w+)[`"\]]?(?:\s+(?:AS\s+)?[`"[]?(\w+)[`"\]]?)?\s+ON\s+[`"[]?(\w+)[`"\]]?\.[`"[]?(\w+)[`"\]]?\s*=\s*[`"[]?(\w+)[`"\]]?\.[`"[]?(\w+)[`"\]]?/gi;
+  let jm;
+  while ((jm = jRe.exec(s)) !== null) {
+    const jtype = (jm[1] || 'INNER').trim().replace(/\s+OUTER/i, '').toUpperCase();
+    const jt = jm[2], ja = jm[3] || jm[2];
+    aliases[ja] = jt; aliases[jt] = jt;
+    joins.push({ type: jtype, lt: aliases[jm[4]] || jm[4], lc: jm[5], rt: aliases[jm[6]] || jm[6], rc: jm[7] });
+  }
+
+  const selCols = new Set();
+  if (colsPart !== '*') {
+    colsPart.split(',').forEach(c => {
+      const p = c.trim().replace(/\s+AS\s+\w+$/i, '').trim();
+      const m2 = p.match(/[`"[]?(\w+)[`"\]]?\.[`"[]?(\w+)[`"\]]?/);
+      if (m2) selCols.add(`${aliases[m2[1]] || m2[1]}.${m2[2]}`);
+    });
+  }
+
+  const wheres = [];
+  const wm = s.match(/WHERE\s+([\s\S]+?)(?:\s+(?:ORDER|GROUP|LIMIT|HAVING)\b|$)/i);
+  if (wm) {
+    const cRe = /(AND|OR)?\s*[`"[]?(\w+)[`"\]]?\.[`"[]?(\w+)[`"\]]?\s*(=|!=|<>|<=|>=|<|>|LIKE|IS\s+NULL|IS\s+NOT\s+NULL|NOT\s+IN|IN)\s*(?:'([^']*)'|(\S+))?/gi;
+    let cm;
+    while ((cm = cRe.exec(wm[1])) !== null) {
+      wheres.push({ col: `${aliases[cm[2]] || cm[2]}.${cm[3]}`, op: cm[4].replace(/\s+/g, ' ').toUpperCase(), val: cm[5] !== undefined ? cm[5] : (cm[6] || ''), logic: cm[1] || 'AND' });
+    }
+  }
+
+  let orderCol = '', orderDir = 'ASC';
+  const om = s.match(/ORDER\s+BY\s+[`"[]?(\w+)[`"\]]?\.[`"[]?(\w+)[`"\]]?\s*(ASC|DESC)?/i);
+  if (om) { orderCol = `${aliases[om[1]] || om[1]}.${om[2]}`; orderDir = (om[3] || 'ASC').toUpperCase(); }
+
+  const lm = s.match(/LIMIT\s+(\d+)/i);
+  return { fromTable, joins, selCols, wheres, orderCol, orderDir, limit: lm ? lm[1] : '', distinct };
+}
+
+// ══════════════════════════════════════════════════════
+// SQL GENERATOR
+// ══════════════════════════════════════════════════════
+function q(n) { return S.dialect === 'mysql' ? '`' + n + '`' : '"' + n + '"'; }
+
+function buildSQL() {
+  if (!Object.keys(S.nodes).length) return '-- Add tables to canvas to begin';
+  const from = S.fromTable || Object.keys(S.nodes)[0];
+  const lines = [];
+  const d = S.distinct ? 'DISTINCT ' : '';
+  const cols = [...S.selCols];
+
+  if (!cols.length) lines.push('SELECT ' + d + '*');
+  else {
+    lines.push('SELECT ' + d);
+    lines.push(cols.map((c, i) => { const [t, col] = c.split('.'); return '  ' + q(t) + '.' + q(col) + (i < cols.length - 1 ? ',' : ''); }).join('\n'));
+  }
+  lines.push('FROM ' + q(from));
+
+  for (const j of S.joins) {
+    if (!j.lt || !j.lc || !j.rt || !j.rc) continue;
+    lines.push(`${j.type} JOIN ${q(j.rt)}`);
+    lines.push(`  ON ${q(j.lt)}.${q(j.lc)} = ${q(j.rt)}.${q(j.rc)}`);
+  }
+
+  const vw = S.wheres.filter(w => w.col && w.op);
+  if (vw.length) {
+    lines.push('WHERE');
+    vw.forEach((w, i) => {
+      const pre = i === 0 ? '  ' : `  ${w.logic} `;
+      const [t, c] = w.col.split('.');
+      let vp;
+      if (['IS NULL', 'IS NOT NULL'].includes(w.op)) vp = w.op;
+      else if (['IN', 'NOT IN'].includes(w.op)) vp = `${w.op} (${w.val})`;
+      else if (w.op === 'LIKE' || w.op === 'NOT LIKE') vp = `${w.op} '${w.val}'`;
+      else { const num = !isNaN(w.val) && w.val !== ''; vp = `${w.op} ${num ? w.val : "'" + w.val + "'"}`; }
+      lines.push(`${pre}${q(t)}.${q(c)} ${vp}`);
+    });
+  }
+
+  if (S.orderCol) { const [t, c] = S.orderCol.split('.'); lines.push(`ORDER BY ${q(t)}.${q(c)} ${S.orderDir}`); }
+  if (S.limit && parseInt(S.limit) > 0) lines.push('LIMIT ' + S.limit);
+  lines.push(';');
+  return lines.join('\n');
+}
+
+// ══════════════════════════════════════════════════════
+// SYNTAX HIGHLIGHT
+// ══════════════════════════════════════════════════════
+function hl(sql) {
+  const kws = /\b(SELECT|DISTINCT|FROM|WHERE|JOIN|LEFT|RIGHT|INNER|FULL|OUTER|CROSS|ON|AND|OR|ORDER|BY|GROUP|HAVING|LIMIT|OFFSET|AS|IS|NULL|NOT|IN|LIKE|BETWEEN|ASC|DESC|CREATE|TABLE|VIEW|INDEX|PRIMARY|KEY|REFERENCES|FOREIGN|CONSTRAINT|INSERT|UPDATE|DELETE)\b/g;
+  return sql
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/'[^']*'/g, s => `<span class="val-c">${s}</span>`)
+    .replace(kws, m => `<span class="kw">${m}</span>`)
+    .replace(/`[^`]+`|"[^"]+"/g, s => `<span class="tbl-c">${s}</span>`)
+    .replace(/--[^\n]*/g, s => `<span class="cmt-c">${s}</span>`);
+}
+
+// ══════════════════════════════════════════════════════
+// CANVAS
+// ══════════════════════════════════════════════════════
+const canvasArea = () => document.getElementById('canvasArea');
+const cSvg = () => document.getElementById('cSvg');
+const cTbls = () => document.getElementById('cTables');
+
+let dragging = null, joinDrag = null, panning = null, spaceDown = false;
+
+function nodeEl(t) { return document.getElementById('nd-' + t); }
+
+function renderCanvas() { renderNodes(); renderLines(); }
+
+function renderNodes() {
+  const cont = cTbls();
+  cont.querySelectorAll('.tnode').forEach(el => { if (!S.nodes[el.dataset.t]) el.remove(); });
+  for (const [tname, pos] of Object.entries(S.nodes)) {
+    let el = nodeEl(tname);
+    if (!el) { el = makeNode(tname); cont.appendChild(el); }
+    positionNode(el, tname);
+    refreshCols(el, tname);
+  }
+}
+
+function makeNode(tname) {
+  const el = document.createElement('div');
+  el.className = 'tnode'; el.id = 'nd-' + tname; el.dataset.t = tname;
+  const hdr = document.createElement('div');
+  hdr.className = 'tnode-hdr';
+  hdr.innerHTML = `<span class="tnode-hdr-name" title="${tname}">📋 ${tname}</span><span class="tnode-x">✕</span>`;
+  hdr.querySelector('.tnode-x').onclick = e => { e.stopPropagation(); removeNode(tname); };
+  hdr.addEventListener('mousedown', e => {
+    if (e.target.classList.contains('tnode-x')) return;
+    e.preventDefault();
+    const r = el.getBoundingClientRect();
+    dragging = { el, tname, ox: e.clientX - r.left, oy: e.clientY - r.top };
+  });
+  el.appendChild(hdr);
+  el.appendChild(document.createElement('div'));
+  return el;
+}
+
+function positionNode(el, tname) {
+  const p = S.nodes[tname];
+  el.style.left = (p.x * S.zoom + S.panX) + 'px';
+  el.style.top = (p.y * S.zoom + S.panY) + 'px';
+  el.style.transform = `scale(${S.zoom})`;
+  el.style.transformOrigin = 'top left';
+}
+
+function refreshCols(el, tname) {
+  const wrap = el.children[1];
+  wrap.innerHTML = '';
+  for (const col of (S.tables[tname] || [])) {
+    const key = `${tname}.${col.name}`;
+    const row = document.createElement('div');
+    row.className = 'tnode-col' + (S.selCols.has(key) ? ' selcol' : '');
+    row.dataset.key = key;
+    row.innerHTML = `<div class="port" data-port="${key}"></div>
+      ${col.pk ? '<span class="icon-pk">🔑</span>' : col.fk ? '<span class="icon-fk">→</span>' : ''}
+      <span class="col-name" title="${col.name}">${col.name}</span>
+      <span class="col-type">${col.type}</span>`;
+    row.addEventListener('click', e => { if (e.target.classList.contains('port') || e.target.dataset.port) return; toggleCol(key, row); });
+    row.querySelector('.port').addEventListener('mousedown', e => {
+      e.preventDefault(); e.stopPropagation();
+      const r = e.target.getBoundingClientRect(), ar = canvasArea().getBoundingClientRect();
+      joinDrag = { ft: tname, fc: col.name, x1: r.left - ar.left + r.width / 2, y1: r.top - ar.top + r.height / 2, x2: r.left - ar.left + r.width / 2, y2: r.top - ar.top + r.height / 2 };
+      document.getElementById('modePill').textContent = 'Join...';
+      document.getElementById('modePill').classList.add('join-active');
+    });
+    wrap.appendChild(row);
+  }
+}
+
+function removeNode(tname) {
+  delete S.nodes[tname];
+  S.joins = S.joins.filter(j => j.lt !== tname && j.rt !== tname);
+  S.selCols = new Set([...S.selCols].filter(k => !k.startsWith(tname + '.')));
+  if (S.fromTable === tname) S.fromTable = Object.keys(S.nodes)[0] || '';
+  renderCanvas(); renderSchema(); renderJoins(); renderColSel(); syncFromSel(); renderSQL();
+}
+
+function renderLines() {
+  const svg = cSvg(); svg.innerHTML = '';
+  const ns = 'http://www.w3.org/2000/svg';
+  for (const j of S.joins) {
+    const p1 = portCenter(j.lt, j.lc), p2 = portCenter(j.rt, j.rc);
+    if (p1 && p2) drawCurve(svg, ns, p1, p2, '#3d8fff', j.type);
+  }
+  if (joinDrag) drawCurve(svg, ns, { x: joinDrag.x1, y: joinDrag.y1 }, { x: joinDrag.x2, y: joinDrag.y2 }, 'rgba(79,255,176,.8)', null);
+}
+
+function portCenter(table, col) {
+  const el = nodeEl(table); if (!el) return null;
+  const row = el.querySelector(`[data-key="${table}.${col}"]`); if (!row) return null;
+  const dot = row.querySelector('.port'); if (!dot) return null;
+  const ar = canvasArea().getBoundingClientRect(), r = dot.getBoundingClientRect();
+  return { x: r.left - ar.left + r.width / 2, y: r.top - ar.top + r.height / 2 };
+}
+
+function drawCurve(svg, ns, p1, p2, color, label) {
+  const dx = Math.abs(p2.x - p1.x);
+  const path = document.createElementNS(ns, 'path');
+  path.setAttribute('d', `M${p1.x},${p1.y} C${p1.x + dx * .55},${p1.y} ${p2.x - dx * .55},${p2.y} ${p2.x},${p2.y}`);
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', color);
+  path.setAttribute('stroke-width', label ? '1.5' : '1.5');
+  path.setAttribute('stroke-dasharray', label ? 'none' : '5,3');
+  path.setAttribute('opacity', '0.85');
+  svg.appendChild(path);
+  [p1, p2].forEach(p => {
+    const c = document.createElementNS(ns, 'circle');
+    c.setAttribute('cx', p.x); c.setAttribute('cy', p.y); c.setAttribute('r', '3.5');
+    c.setAttribute('fill', color); svg.appendChild(c);
+  });
+  if (label) {
+    const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2 - 8;
+    const bg = document.createElementNS(ns, 'rect');
+    bg.setAttribute('x', mx - 18); bg.setAttribute('y', my - 9); bg.setAttribute('width', 36); bg.setAttribute('height', 13);
+    bg.setAttribute('rx', '3'); bg.setAttribute('fill', '#13161e'); bg.setAttribute('stroke', '#272c3d'); bg.setAttribute('stroke-width', '1');
+    svg.appendChild(bg);
+    const txt = document.createElementNS(ns, 'text');
+    txt.setAttribute('x', mx); txt.setAttribute('y', my); txt.setAttribute('text-anchor', 'middle');
+    txt.setAttribute('fill', '#3d8fff'); txt.setAttribute('font-size', '7'); txt.setAttribute('font-family', 'JetBrains Mono,monospace'); txt.setAttribute('font-weight', '700');
+    txt.textContent = label; svg.appendChild(txt);
+  }
+}
+
+// Mouse events
+document.addEventListener('mousemove', e => {
+  if (dragging) {
+    const ar = canvasArea().getBoundingClientRect();
+    const x = (e.clientX - ar.left - S.panX - dragging.ox) / S.zoom;
+    const y = (e.clientY - ar.top - S.panY - dragging.oy) / S.zoom;
+    S.nodes[dragging.tname].x = Math.max(0, x);
+    S.nodes[dragging.tname].y = Math.max(0, y);
+    positionNode(dragging.el, dragging.tname); renderLines();
+  }
+  if (joinDrag) {
+    const ar = canvasArea().getBoundingClientRect();
+    joinDrag.x2 = e.clientX - ar.left; joinDrag.y2 = e.clientY - ar.top; renderLines();
+  }
+  if (panning) { S.panX = e.clientX - panning.sx; S.panY = e.clientY - panning.sy; renderNodes(); renderLines(); }
+});
+
+document.addEventListener('mouseup', e => {
+  dragging = null; panning = null;
+  if (joinDrag) {
+    const target = document.elementFromPoint(e.clientX, e.clientY);
+    const portEl = target && (target.dataset.port ? target : target.closest('[data-port]'));
+    if (portEl) {
+      const key = portEl.dataset.port;
+      if (key) {
+        const [toT, toC] = key.split('.');
+        if (toT !== joinDrag.ft) {
+          const dup = S.joins.find(j => j.lt === joinDrag.ft && j.lc === joinDrag.fc && j.rt === toT && j.rc === toC);
+          if (!dup) {
+            S.joins.push({ type: 'INNER', lt: joinDrag.ft, lc: joinDrag.fc, rt: toT, rc: toC });
+            if (!S.fromTable) { S.fromTable = joinDrag.ft; syncFromSel(); }
+            renderJoins(); renderColSel(); renderSQL(); toast('Join added');
+          }
+        }
+      }
+    }
+    joinDrag = null;
+    document.getElementById('modePill').textContent = 'Click';
+    document.getElementById('modePill').classList.remove('join-active');
+    renderLines();
+  }
+});
+
+document.addEventListener('keydown', e => { if (e.code === 'Space') { spaceDown = true; e.preventDefault(); } });
+document.addEventListener('keyup', e => { if (e.code === 'Space') spaceDown = false; });
+
+canvasArea().addEventListener('mousedown', e => {
+  if (spaceDown || e.button === 1) panning = { sx: e.clientX - S.panX, sy: e.clientY - S.panY };
+});
+
+document.getElementById('zIn').onclick = () => { S.zoom = Math.min(2, +(S.zoom + .1).toFixed(1)); applyZoom(); };
+document.getElementById('zOut').onclick = () => { S.zoom = Math.max(.3, +(S.zoom - .1).toFixed(1)); applyZoom(); };
+function applyZoom() { document.getElementById('zLbl').textContent = Math.round(S.zoom * 100) + '%'; renderNodes(); renderLines(); }
+
+document.getElementById('btnLayout').onclick = () => {
+  const names = Object.keys(S.nodes);
+  const cols = Math.ceil(Math.sqrt(names.length)) || 1;
+  names.forEach((n, i) => { S.nodes[n] = { x: (i % cols) * 210 + 15, y: Math.floor(i / cols) * 270 + 15 }; });
+  renderCanvas();
+};
+document.getElementById('btnResetView').onclick = () => { S.panX = 0; S.panY = 0; S.zoom = 1; applyZoom(); renderNodes(); renderLines(); };
+
+// ══════════════════════════════════════════════════════
+// SCHEMA PANEL
+// ══════════════════════════════════════════════════════
+// Schema sub-tabs
+document.querySelectorAll('.stab').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.stab').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    ['sTables', 'sFk', 'sViews'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    const map = { tables: 'sTables', fk: 'sFk', views: 'sViews' };
+    document.getElementById(map[btn.dataset.s]).classList.remove('hidden');
+  };
+});
+
+function renderSchema() {
+  const names = Object.keys(S.tables);
+  document.getElementById('tblBadge').textContent = names.length;
+
+  // Tables tab
+  document.getElementById('tblList').innerHTML = names.map(t => {
+    const on = !!S.nodes[t];
+    return `<div class="tc">
+      <div class="tch ${on ? 'on-canvas' : 'off-canvas'}" onclick="toggleCanvas('${t}')">
+        <span>${on ? '✓' : '+'}</span>
+        <span class="tch-name">${t}</span>
+        <span class="tch-meta">${(S.tables[t] || []).length} cols</span>
+      </div>
+      <div class="tcols">${(S.tables[t] || []).map(c =>
+      `<div class="tci"><span class="tci-name">${c.name}</span><span class="tci-type"> ${c.type}</span>${c.pk ? '<span class="icon-pk" style="margin-left:auto">🔑</span>' : c.fk ? '<span class="icon-fk" style="margin-left:auto">FK</span>' : ''}</div>`
+    ).join('')}</div>
+    </div>`;
+  }).join('');
+
+  // FK tab
+  const fkDiv = document.getElementById('fkList');
+  if (!S.fks.length) { fkDiv.innerHTML = '<div class="es">No FK relationships detected.</div>'; }
+  else {
+    fkDiv.innerHTML = S.fks.map((f, i) => {
+      const alreadyAdded = S.joins.some(j => j.lt === f.fromTable && j.lc === f.fromCol && j.rt === f.toTable && j.rc === f.toCol);
+      return `<div class="fk-chip ${alreadyAdded ? 'added' : ''}" onclick="${alreadyAdded ? '' : 'addFKJoin(' + i + ')'}">
+        ${alreadyAdded ? '✓' : '+'} ${f.fromTable}.<strong>${f.fromCol}</strong> → ${f.toTable}.<strong>${f.toCol}</strong>
+      </div>`;
+    }).join('');
+  }
+
+  // Views tab
+  const vDiv = document.getElementById('viewList');
+  const vBadge = document.getElementById('viewBadge');
+  if (!S.views.length) { vDiv.innerHTML = '<div class="es">No views detected.</div>'; vBadge.classList.add('hidden'); }
+  else {
+    vBadge.textContent = S.views.length + ' views';
+    vBadge.classList.remove('hidden');
+    vDiv.innerHTML = S.views.map(v => `<div class="tc">
+      <div class="tch off-canvas" style="cursor:default"><span>👁</span><span class="tch-name">${v.name}</span></div>
+    </div>`).join('');
+  }
+}
+
+window.toggleCanvas = function (tname) {
+  if (S.nodes[tname]) { removeNode(tname); }
+  else {
+    const n = Object.keys(S.nodes).length;
+    S.nodes[tname] = { x: 15 + (n % 4) * 210, y: 15 + Math.floor(n / 4) * 270 };
+    if (!S.fromTable) { S.fromTable = tname; }
+    renderCanvas(); renderSchema(); renderColSel(); syncFromSel(); renderSQL();
+  }
+};
+
+document.getElementById('btnAddAll').onclick = () => {
+  const names = Object.keys(S.tables);
+  names.forEach((t, i) => {
+    if (!S.nodes[t]) S.nodes[t] = { x: (i % 4) * 210 + 15, y: Math.floor(i / 4) * 270 + 15 };
+  });
+  if (!S.fromTable && names.length) S.fromTable = names[0];
+  renderCanvas(); renderSchema(); renderColSel(); syncFromSel(); renderSQL();
+  toast(`Added ${names.length} tables to canvas`);
+};
+
+document.getElementById('btnRemoveAll').onclick = () => {
+  S.nodes = {}; S.joins = []; S.selCols.clear(); S.fromTable = '';
+  renderCanvas(); renderSchema(); renderJoins(); renderColSel(); syncFromSel(); renderSQL();
+};
+
+window.addFKJoin = function (i) {
+  const f = S.fks[i]; if (!f) return;
+  if (!S.nodes[f.fromTable]) { const n = Object.keys(S.nodes).length; S.nodes[f.fromTable] = { x: 15 + (n % 4) * 210, y: 15 + Math.floor(n / 4) * 270 }; }
+  if (!S.nodes[f.toTable]) { const n = Object.keys(S.nodes).length; S.nodes[f.toTable] = { x: 15 + (n % 4) * 210, y: 15 + Math.floor(n / 4) * 270 }; }
+  const dup = S.joins.find(j => j.lt === f.fromTable && j.lc === f.fromCol && j.rt === f.toTable && j.rc === f.toCol);
+  if (!dup) S.joins.push({ type: 'INNER', lt: f.fromTable, lc: f.fromCol, rt: f.toTable, rc: f.toCol });
+  if (!S.fromTable) S.fromTable = f.fromTable;
+  renderCanvas(); renderSchema(); renderJoins(); renderColSel(); syncFromSel(); renderSQL();
+  toast('FK join added + tables placed on canvas');
+};
+
+// ══════════════════════════════════════════════════════
+// BUILDER
+// ══════════════════════════════════════════════════════
+function syncFromSel() {
+  const sel = document.getElementById('fromSel');
+  const cur = S.fromTable;
+  sel.innerHTML = '<option value="">— select table —</option>' + Object.keys(S.nodes).map(t => `<option value="${t}"${t === cur ? ' selected' : ''}>${t}</option>`).join('');
+}
+document.getElementById('fromSel').onchange = e => { S.fromTable = e.target.value; renderColSel(); renderSQL(); };
+
+function getAllCols() {
+  const out = [];
+  for (const t of Object.keys(S.nodes)) for (const c of (S.tables[t] || [])) out.push(`${t}.${c.name}`);
+  return out;
+}
+
+function renderJoins() {
+  const div = document.getElementById('joinList');
+  if (!S.joins.length) { div.innerHTML = '<div class="es">No joins yet — drag between column dots or click + Add</div>'; return; }
+  const allCols = getAllCols();
+  const types = ['INNER', 'LEFT', 'RIGHT', 'FULL OUTER', 'CROSS'];
+  div.innerHTML = S.joins.map((j, i) => `<div class="join-row">
+    <select class="si" onchange="updJoin(${i},'type',this.value)">
+      ${types.map(t => `<option${t === j.type ? ' selected' : ''}>${t}</option>`).join('')}
+    </select>
+    <span class="kwd">JOIN</span>
+    <select class="si" onchange="updJoin(${i},'rt',this.value)">
+      <option value="">—table—</option>
+      ${Object.keys(S.nodes).map(t => `<option value="${t}"${t === j.rt ? ' selected' : ''}>${t}</option>`).join('')}
+    </select>
+    <span class="kwd">ON</span>
+    <select class="si" style="max-width:110px" onchange="updJoinOn(${i},'left',this.value)">
+      <option value="">—col—</option>
+      ${allCols.map(c => `<option value="${c}"${c === j.lt + '.' + j.lc ? ' selected' : ''}>${c}</option>`).join('')}
+    </select>
+    <span class="kwd">=</span>
+    <select class="si" style="max-width:110px" onchange="updJoinOn(${i},'right',this.value)">
+      <option value="">—col—</option>
+      ${(j.rt && S.tables[j.rt] ? S.tables[j.rt].map(c => j.rt + '.' + c.name) : allCols).map(c => `<option value="${c}"${c === j.rt + '.' + j.rc ? ' selected' : ''}>${c}</option>`).join('')}
+    </select>
+    <button class="btn xs dng" onclick="delJoin(${i})">✕</button>
+  </div>`).join('');
+}
+
+window.updJoin = (i, k, v) => { S.joins[i][k] = v; renderJoins(); renderLines(); renderSQL(); };
+window.updJoinOn = (i, side, val) => {
+  if (!val) return;
+  const [t, c] = val.split('.');
+  if (side === 'left') { S.joins[i].lt = t; S.joins[i].lc = c; }
+  else { S.joins[i].rt = t; S.joins[i].rc = c; }
+  renderJoins(); renderLines(); renderSQL();
+};
+window.delJoin = i => { S.joins.splice(i, 1); renderJoins(); renderLines(); renderSQL(); };
+
+document.getElementById('btnAddJoin').onclick = () => {
+  if (!Object.keys(S.nodes).length) { toast('Add tables to canvas first'); return; }
+  S.joins.push({ type: 'INNER', lt: '', lc: '', rt: '', rc: '' });
+  renderJoins(); renderSQL();
+};
+
+function renderColSel() {
+  const div = document.getElementById('colSel');
+  const tables = S.fromTable
+    ? [S.fromTable, ...S.joins.filter(j => j.rt).map(j => j.rt)]
+    : [...Object.keys(S.nodes)];
+  const unique = [...new Set(tables)].filter(t => S.tables[t]);
+  if (!unique.length) { div.innerHTML = '<div class="es">Choose a FROM table first</div>'; updateOrderSel(); return; }
+  div.innerHTML = unique.map(t => `<div class="col-group">
+    <div class="col-group-lbl">${t}</div>
+    ${(S.tables[t] || []).map(c => {
+    const key = `${t}.${c.name}`;
+    return `<label class="col-check">
+        <input type="checkbox"${S.selCols.has(key) ? ' checked' : ''} onchange="toggleColCB('${key}',this.checked)"/>
+        <span>${c.name}</span>
+        <span class="col-check-type">${c.type}</span>
+        ${c.pk ? '<span class="icon-pk">🔑</span>' : ''}
+      </label>`;
+  }).join('')}
+  </div>`).join('');
+  updateOrderSel();
+}
+
+function updateOrderSel() {
+  const sel = document.getElementById('orderCol');
+  const cur = S.orderCol;
+  sel.innerHTML = '<option value="">— none —</option>' + getAllCols().map(c => `<option value="${c}"${c === cur ? ' selected' : ''}>${c}</option>`).join('');
+}
+
+window.toggleColCB = (key, checked) => {
+  if (checked) S.selCols.add(key); else S.selCols.delete(key);
+  const row = document.querySelector(`.tnode-col[data-key="${key}"]`);
+  if (row) row.classList.toggle('selcol', checked);
+  renderSQL();
+};
+
+function toggleCol(key, rowEl) {
+  const checked = !S.selCols.has(key);
+  if (checked) S.selCols.add(key); else S.selCols.delete(key);
+  if (rowEl) rowEl.classList.toggle('selcol', checked);
+  const cb = document.querySelector(`input[onchange*="'${key}'"]`);
+  if (cb) cb.checked = checked;
+  renderSQL();
+}
+
+document.getElementById('btnSelAll').onclick = () => { getAllCols().forEach(c => S.selCols.add(c)); renderColSel(); renderNodes(); renderSQL(); };
+document.getElementById('btnSelNone').onclick = () => { S.selCols.clear(); renderColSel(); renderNodes(); renderSQL(); };
+
+function renderWheres() {
+  const div = document.getElementById('whereList');
+  if (!S.wheres.length) { div.innerHTML = '<div class="es">No conditions yet</div>'; return; }
+  const cols = getAllCols();
+  const ops = ['=', '!=', '<', '>', '<=', '>=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'];
+  div.innerHTML = S.wheres.map((w, i) => `<div class="where-row">
+    ${i > 0 ? `<select class="si" onchange="updW(${i},'logic',this.value)"><option${w.logic === 'AND' ? ' selected' : ''}>AND</option><option${w.logic === 'OR' ? ' selected' : ''}>OR</option></select>` : ''}
+    <select class="si" onchange="updW(${i},'col',this.value)">
+      <option value="">—col—</option>
+      ${cols.map(c => `<option value="${c}"${c === w.col ? ' selected' : ''}>${c}</option>`).join('')}
+    </select>
+    <select class="si" onchange="updW(${i},'op',this.value)">
+      ${ops.map(o => `<option${o === w.op ? ' selected' : ''}>${o}</option>`).join('')}
+    </select>
+    ${!['IS NULL', 'IS NOT NULL'].includes(w.op) ? `<input class="ti" placeholder="value" value="${w.val || ''}" oninput="updW(${i},'val',this.value)"/>` : ''}
+    <button class="btn xs dng" onclick="delW(${i})">✕</button>
+  </div>`).join('');
+}
+
+window.updW = (i, k, v) => { S.wheres[i][k] = v; renderWheres(); renderSQL(); };
+window.delW = i => { S.wheres.splice(i, 1); renderWheres(); renderSQL(); };
+document.getElementById('btnAddWhere').onclick = () => { S.wheres.push({ col: '', op: '=', val: '', logic: 'AND' }); renderWheres(); renderSQL(); };
+
+document.getElementById('orderCol').onchange = e => { S.orderCol = e.target.value; renderSQL(); };
+document.getElementById('orderDir').onchange = e => { S.orderDir = e.target.value; renderSQL(); };
+document.getElementById('limitVal').oninput = e => { S.limit = e.target.value; renderSQL(); };
+document.getElementById('chkDist').onchange = e => { S.distinct = e.target.checked; renderSQL(); };
+
+function renderSQL() { document.getElementById('sqlOut').innerHTML = hl(buildSQL()); }
+
+// ══════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════
+const tabMap = { sql: 'tSQL', results: 'tResults', seed: 'tSeed' };
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    Object.values(tabMap).forEach(id => document.getElementById(id).classList.add('hidden'));
+    document.getElementById(tabMap[btn.dataset.t]).classList.remove('hidden');
+  };
+});
+function showTab(t) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  Object.values(tabMap).forEach(id => document.getElementById(id).classList.add('hidden'));
+  document.getElementById(tabMap[t]).classList.remove('hidden');
+}
+
+// ══════════════════════════════════════════════════════
+// RUN QUERY
+// ══════════════════════════════════════════════════════
+function runQuery() {
+  if (!DB) { toast('SQLite not ready yet'); return; }
+  const sql = buildSQL();
+  if (sql.startsWith('--')) { toast('Build a query first'); return; }
+  showTab('results');
+  try {
+    const res = DB.exec(sql);
+    document.getElementById('runMsg').innerHTML = '';
+    const area = document.getElementById('resultsArea');
+    if (!res.length) { area.innerHTML = '<div class="msg-ok">✓ Query ran — no rows returned.</div>'; return; }
+    const { columns, values } = res[0];
+    area.innerHTML = `<div class="res-wrap"><table>
+      <thead><tr>${columns.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+      <tbody>${values.map(r => `<tr>${r.map(v => `<td>${v === null ? '<span class="null-v">NULL</span>' : String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;')}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div><div class="rc">${values.length} row${values.length !== 1 ? 's' : ''}</div>`;
+  } catch (e) {
+    document.getElementById('resultsArea').innerHTML = `<div class="msg-err">${e.message}</div>`;
+  }
+}
+document.getElementById('btnRunTop').onclick = runQuery;
+document.getElementById('btnRun2').onclick = runQuery;
+
+[document.getElementById('btnCopyTop'), document.getElementById('btnCopy2')].forEach(b => {
+  b.onclick = () => navigator.clipboard.writeText(buildSQL()).then(() => toast('Copied!'));
+});
+
+// ══════════════════════════════════════════════════════
+// DIALECT
+// ══════════════════════════════════════════════════════
+document.querySelectorAll('.dbtn').forEach(b => {
+  b.onclick = () => { document.querySelectorAll('.dbtn').forEach(x => x.classList.remove('on')); b.classList.add('on'); S.dialect = b.dataset.d; renderSQL(); };
+});
+
+// ══════════════════════════════════════════════════════
+// PARSE DDL BUTTON
+// ══════════════════════════════════════════════════════
+document.getElementById('btnParse').onclick = () => {
+  const rawEl = document.getElementById('ddlIn');
+  const raw = rawEl.value.trim();
+  const msg = document.getElementById('parseMsg');
+  const dbgOut = document.getElementById('debugOut');
+  if (dbgOut) { dbgOut.innerHTML = ''; dbgOut.style.display = 'none'; }
+  if (!raw) { setMsg(msg, 'Paste DDL or sqlite_master output first', 'err'); rawEl.focus(); return; }
+
+  // Detect common wrong-content mistakes
+  if (/^\s*SELECT\b/i.test(raw) && !/CREATE\s+TABLE/i.test(raw)) {
+    setMsg(msg, '⚠ Looks like a SELECT query — use "↙ Parse SQL" in the topbar for that. This box needs CREATE TABLE DDL or sqlite_master output.', 'err');
+    return;
+  }
+  if (/^\s*INSERT\s+INTO\s+(?!sqlite_master)/i.test(raw)) {
+    setMsg(msg, '⚠ Looks like INSERT data — paste that in the Seed DB tab instead. This box needs CREATE TABLE DDL or sqlite_master output.', 'err');
+    return;
+  }
+
+  const { tables, fks, views } = parseDDLInput(raw);
+  const n = Object.keys(tables).length;
+  if (!n) {
+    const hasMaster = /INSERT\s+INTO\s+sqlite_master/i.test(raw) || raw.includes("('table',");
+    const hint = hasMaster
+      ? 'sqlite_master format detected but no tables extracted — check browser console for details'
+      : 'No CREATE TABLE statements found — paste raw DDL or sqlite_master INSERT output';
+    setMsg(msg, hint, 'err');
+    return;
+  }
+  S.tables = tables; S.fks = fks; S.views = views;
+  setMsg(msg, `✓ ${n} table(s), ${fks.length} FK(s), ${views.length} view(s) loaded`, 'ok');
+  renderSchema(); toast(`Loaded ${n} tables`);
+};
+
+document.getElementById('btnClearSchema').onclick = () => {
+  Object.assign(S, { tables: {}, fks: [], views: [], nodes: {}, joins: [], selCols: new Set(), wheres: [], fromTable: '', orderCol: '', limit: '' });
+  const dbo = document.getElementById('debugOut'); if(dbo){dbo.innerHTML='';dbo.style.display='none';}
+  document.getElementById('ddlIn').value = '';
+  document.getElementById('parseMsg').innerHTML = '';
+  renderSchema(); renderCanvas(); renderJoins(); renderColSel(); syncFromSel(); renderWheres(); renderSQL();
+};
+
+// ══════════════════════════════════════════════════════
+// SAMPLE DATA
+// ══════════════════════════════════════════════════════
+document.getElementById('btnSample').onclick = () => {
+  document.getElementById('ddlIn').value = `CREATE TABLE customers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT,
+  city TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE orders (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  customer_id INTEGER NOT NULL,
+  product_id INTEGER,
+  amount REAL,
+  status TEXT,
+  order_date TEXT,
+  CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_orders_product FOREIGN KEY (product_id) REFERENCES products(id)
+);
+CREATE TABLE products (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  category TEXT,
+  price REAL,
+  stock INTEGER
+);
+CREATE TABLE order_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  order_id INTEGER NOT NULL,
+  product_id INTEGER NOT NULL,
+  qty INTEGER,
+  unit_price REAL,
+  CONSTRAINT fk_oi_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  CONSTRAINT fk_oi_product FOREIGN KEY (product_id) REFERENCES products(id)
+);
+CREATE INDEX idx_orders_customer ON orders(customer_id);
+CREATE INDEX idx_orders_status ON orders(status);
+CREATE VIEW v_order_totals AS
+  SELECT o.id, c.name, SUM(oi.qty * oi.unit_price) AS total
+  FROM orders o JOIN customers c ON o.customer_id = c.id
+  JOIN order_items oi ON oi.order_id = o.id GROUP BY o.id;`;
+
+  document.getElementById('seedIn').value = `CREATE TABLE IF NOT EXISTS customers(id INTEGER PRIMARY KEY,name TEXT,email TEXT,city TEXT,created_at TEXT);
+CREATE TABLE IF NOT EXISTS products(id INTEGER PRIMARY KEY,name TEXT,category TEXT,price REAL,stock INTEGER);
+CREATE TABLE IF NOT EXISTS orders(id INTEGER PRIMARY KEY,customer_id INTEGER,product_id INTEGER,amount REAL,status TEXT,order_date TEXT);
+CREATE TABLE IF NOT EXISTS order_items(id INTEGER PRIMARY KEY,order_id INTEGER,product_id INTEGER,qty INTEGER,unit_price REAL);
+INSERT INTO customers VALUES(1,'Alice Johnson','alice@mail.com','New York','2024-01-15');
+INSERT INTO customers VALUES(2,'Bob Smith','bob@mail.com','Chicago','2024-02-20');
+INSERT INTO customers VALUES(3,'Carol White','carol@mail.com','Los Angeles','2024-03-10');
+INSERT INTO products VALUES(1,'Widget Pro','Electronics',299.99,42);
+INSERT INTO products VALUES(2,'Gadget X','Electronics',149.50,15);
+INSERT INTO products VALUES(3,'Super Tool','Tools',89.00,100);
+INSERT INTO orders VALUES(1,1,1,299.99,'shipped','2024-06-01');
+INSERT INTO orders VALUES(2,1,2,149.50,'delivered','2024-06-15');
+INSERT INTO orders VALUES(3,2,1,299.99,'pending','2024-07-01');
+INSERT INTO orders VALUES(4,3,3,89.00,'delivered','2024-07-10');
+INSERT INTO order_items VALUES(1,1,1,1,299.99);
+INSERT INTO order_items VALUES(2,2,2,1,149.50);
+INSERT INTO order_items VALUES(3,3,1,2,299.99);
+INSERT INTO order_items VALUES(4,4,3,1,89.00);`;
+
+  document.getElementById('btnParse').click();
+};
+
+// ══════════════════════════════════════════════════════
+// SEED DB
+// ══════════════════════════════════════════════════════
+document.getElementById('btnSeed').onclick = () => {
+  if (!DB) { setMsg(document.getElementById('seedMsg'), 'SQLite not ready', 'err'); return; }
+  const sql = document.getElementById('seedIn').value.trim();
+  if (!sql) { setMsg(document.getElementById('seedMsg'), 'Paste seed SQL first', 'err'); return; }
+  try { DB.run(sql); setMsg(document.getElementById('seedMsg'), '✓ DB loaded!', 'ok'); toast('DB seeded!'); }
+  catch (e) { setMsg(document.getElementById('seedMsg'), e.message, 'err'); }
+};
+document.getElementById('btnClearDB').onclick = () => {
+  if (!DB) return;
+  try {
+    const ts = DB.exec("SELECT name FROM sqlite_master WHERE type='table'");
+    if (ts.length) ts[0].values.forEach(([n]) => { try { DB.run(`DROP TABLE IF EXISTS "${n}"`); } catch (e) {} });
+    setMsg(document.getElementById('seedMsg'), '✓ DB cleared', 'ok');
+  } catch (e) {}
+};
+
+// ══════════════════════════════════════════════════════
+// PARSE SQL MODAL
+// ══════════════════════════════════════════════════════
+document.getElementById('btnPasteSQL').onclick = () => document.getElementById('sqlModal').classList.remove('hidden');
+document.getElementById('btnModalClose').onclick = () => document.getElementById('sqlModal').classList.add('hidden');
+document.getElementById('btnParseSQLOk').onclick = () => {
+  const sql = document.getElementById('sqlPaste').value.trim();
+  const msg = document.getElementById('sqlParseMsg');
+  if (!sql) { setMsg(msg, 'Paste a SELECT query first', 'err'); return; }
+  const p = parseSQL(sql);
+  if (!p) { setMsg(msg, 'Could not parse — check syntax', 'err'); return; }
+  if (p.fromTable && S.tables[p.fromTable] && !S.nodes[p.fromTable]) S.nodes[p.fromTable] = { x: 15, y: 15 };
+  p.joins.forEach((j, i) => {
+    if (S.tables[j.rt] && !S.nodes[j.rt]) S.nodes[j.rt] = { x: 15 + (i + 1) * 210, y: 15 };
+    const dup = S.joins.find(x => x.lt === j.lt && x.lc === j.lc && x.rt === j.rt && x.rc === j.rc);
+    if (!dup) S.joins.push(j);
+  });
+  S.fromTable = p.fromTable; S.selCols = p.selCols; S.wheres = p.wheres;
+  S.orderCol = p.orderCol; S.orderDir = p.orderDir; S.limit = p.limit; S.distinct = p.distinct;
+  document.getElementById('limitVal').value = S.limit;
+  document.getElementById('chkDist').checked = S.distinct;
+  renderCanvas(); renderSchema(); syncFromSel(); renderJoins(); renderColSel(); renderWheres(); renderSQL();
+  document.getElementById('sqlModal').classList.add('hidden');
+  toast('SQL parsed & visualized!');
+  setTimeout(() => document.getElementById('btnLayout').click(), 80);
+};
+
+// ══════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════
+function checkDDLContent(el) {
+  const v = el.value.trim();
+  if (!v) { el.style.borderColor = ''; return; }
+  if (/^\s*SELECT\b/i.test(v) && !/CREATE\s+TABLE/i.test(v)) {
+    el.style.borderColor = 'var(--gold)';
+    el.title = 'This looks like a SELECT query — use "↙ Parse SQL" in the topbar';
+  } else if (/CREATE\s+TABLE/i.test(v) || /INSERT\s+INTO\s+sqlite_master/i.test(v) || /\'table\'/i.test(v)) {
+    el.style.borderColor = 'var(--accent)';
+    el.title = '';
+  } else {
+    el.style.borderColor = '';
+    el.title = '';
+  }
+}
+
+function setMsg(el, txt, type) { el.className = type === 'err' ? 'msg-err' : type === 'info' ? 'msg-info' : 'msg-ok'; el.textContent = txt; }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+renderSQL();
+</script>
+
+<script>
+(function(){
+  var el = document.getElementById('verStr');
+  if(el && typeof APP_VERSION !== 'undefined') el.textContent = 'v' + APP_VERSION + ' (' + BUILD_DATE + ')';
+})();
+</script>
+</body>
+</html>
