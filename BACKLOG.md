@@ -126,6 +126,21 @@ Parse `SELECT ... FROM (SELECT ...) AS sub` and represent the inner query as a v
 **F-024 — Handle table aliases consistently** 🟡  
 The reverse parser maps aliases to table names, but if a schema hasn't been loaded yet, table names can't be resolved. Add a warning when aliases can't be resolved.
 
+### Query Builder (cont.)
+
+**F-033 — Composite (multi-column) join keys** 🟡  
+**Added 2026-09-08.** A join is currently a single `{lt, lc, rt, rc}` column pair. Schemas with composite keys need `ON a.x = b.x AND a.y = b.y`. Extend the join model to hold multiple column pairs per join and render/parse the `AND`-joined `ON` clause accordingly.
+
+### Schema Management
+
+**F-034 — Named, saved schemas** 🟡  
+**Added 2026-09-08.** Only one schema can be loaded at a time; re-parsing replaces it. Allow saving the current schema under a name in `localStorage` and switching between saved schemas via a dropdown, rather than requiring re-paste.
+
+### Results & Execution (cont.)
+
+**F-035 — EXPLAIN QUERY PLAN view** 🟢  
+**Added 2026-09-08.** sql.js supports `EXPLAIN QUERY PLAN`. Add a tab/toggle next to Results that runs the built query prefixed with `EXPLAIN QUERY PLAN` and displays the plan — a useful learning aid alongside the visual builder.
+
 ### UX / Polish
 
 **F-025 — Keyboard shortcuts** 🟡  
@@ -145,6 +160,12 @@ Persist the current query (joins, selected columns, WHERE conditions) to `localS
 
 **F-030 — Share query via URL** 🟢  
 Encode the current query state in the URL hash so it can be shared as a link.
+
+**F-036 — Type-mismatch hints in WHERE conditions** 🟢  
+**Added 2026-09-08.** The WHERE builder doesn't warn when a condition compares a TEXT column against a bare numeric literal (or vice versa), which silently produces a query that returns no rows in strict-typed dialects. Add an inline hint (not a hard block) based on the column's parsed type.
+
+**F-037 — Keyboard-accessible canvas interactions** 🟡  
+**Added 2026-09-08.** Dragging table headers and drawing joins by dragging column-port dots are mouse-only; there's no keyboard path to move a node or create a join, and port dots/nodes lack ARIA labels. Add a keyboard-operable alternative (e.g. arrow-key nudge when a node is focused, an "Add Join" flow via the existing `+ Add` button paired with select dropdowns) and basic ARIA labeling for screen readers.
 
 ---
 
