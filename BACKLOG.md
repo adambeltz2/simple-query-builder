@@ -19,8 +19,10 @@ Resolved. Was using `allCols` (all tables) instead of filtering to the joined ta
 ### B-003 — Canvas empty after schema parse ✅ Fixed in v0.3.0
 Tables now auto-populate schema panel on parse; "+ Add All to Canvas" added.
 
-### B-004 — sqlite_master extractor breaks on extra unquoted columns (e.g. `rootpage`) 🟡
-**Added 2026-08-26.** `extractQuotedValues` reads exactly 4 consecutive single-quoted values per tuple and only skips whitespace/commas between them. A dump that includes the unquoted `rootpage` integer column between `tbl_name` and `sql` (common output from `SELECT *`, `.dump`, or several DB GUI "export as SQL" features, not just the README's recommended 4-column `SELECT`) makes the state machine stop early — it hits a bare digit, which isn't `'`, `,`, or whitespace, and bails with only 3 values collected. Result: 0 statements extracted, with no hint to the user about *why*. Consider skipping runs of non-quote/non-comma characters (not just whitespace) between quoted values, or locating the `sql` value by scanning for the *last* quoted value before the tuple's closing `)` instead of assuming a fixed 4-value order.
+### B-004 — sqlite_master extractor breaks on extra unquoted columns (e.g. `rootpage`) ✅ Fixed
+**Added 2026-08-26.** `extractQuotedValues` reads exactly 4 consecutive single-quoted values per tuple and only skips whitespace/commas between them. A dump that includes the unquoted `rootpage` integer column between `tbl_name` and `sql` (common output from `SELECT *`, `.dump`, or several DB GUI "export as SQL" features, not just the README's recommended 4-column `SELECT`) makes the state machine stop early — it hits a bare digit, which isn't `'`, `,`, or whitespace, and bails with only 3 values collected. Result: 0 statements extracted, with no hint to the user about *why*.
+
+**Fix (2026-09-11):** `extractQuotedValues` now skips any run of unquoted, non-comma/non-paren characters between quoted values (an integer, `NULL`, etc.) instead of stopping at the first non-quote character. The 4 quoted values (`type`, `name`, `tbl_name`, `sql`) are still collected correctly regardless of extra unquoted columns interspersed between them. Covered by `test/sample_schema.sql` + `tests/fixture-schema.spec.js` (see I-002).
 
 ### B-005 — WHERE values aren't escaped when generating SQL ✅ Fixed
 **Added 2026-08-26.** In `buildSQL()`, a WHERE value is interpolated directly: `` `${w.op} '${w.val}'` ``. A value containing an apostrophe (e.g. `O'Brien`) produces invalid/broken SQL when run or copied — the generated string has an unbalanced quote.
@@ -32,11 +34,15 @@ Tables now auto-populate schema panel on parse; "+ Add All to Canvas" added.
 ### B-006 — Version footer fallback text goes stale 🟢 Fixed in v0.4.3
 The `#verStr` span shipped with a hardcoded placeholder (`v0.4.1`) that didn't match `APP_VERSION` (`0.4.2`). Cosmetic only — the closing `<script>` IIFE overwrites it on load — but misleading if that IIFE ever fails to run. Fixed by clearing the placeholder so there's nothing stale to show before the real version is injected.
 
-### B-007 — "Run Query" always executes as SQLite regardless of selected dialect 🟢
-**Added 2026-08-26.** The MySQL/PostgreSQL dialect toggle only changes the *displayed* SQL's quoting style. `runQuery()` always executes against the in-browser `sql.js` (SQLite) engine, so dialect-specific syntax a user builds for MySQL/Postgres may not behave the same when run — or may run successfully but not reflect what would happen on the real target database. Worth a small inline note ("Run always uses SQLite semantics") or disabling Run when a non-SQLite dialect is selected.
+### B-007 — "Run Query" always executes as SQLite regardless of selected dialect ✅ Fixed
+**Added 2026-08-26.** The MySQL/PostgreSQL dialect toggle only changes the *displayed* SQL's quoting style. `runQuery()` always executes against the in-browser `sql.js` (SQLite) engine, so dialect-specific syntax a user builds for MySQL/Postgres may not behave the same when run — or may run successfully but not reflect what would happen on the real target database.
 
-### B-008 — Clear DB swallows errors silently 🟢
-**Added 2026-08-26.** `btnClearDB`'s per-table `DROP TABLE` and the outer clear both have empty `catch (e) {}` blocks. If a drop fails, the user sees a generic "✓ DB cleared" success message regardless. Low severity, but worth surfacing failures.
+**Fix (2026-09-11):** added an inline `msg-info` note above the results whenever a query is run with a non-SQLite dialect selected, stating that Run always uses SQLite semantics. Covered by `tests/misc-fixes.spec.js`.
+
+### B-008 — Clear DB swallows errors silently ✅ Fixed
+**Added 2026-08-26.** `btnClearDB`'s per-table `DROP TABLE` and the outer clear both have empty `catch (e) {}` blocks. If a drop fails, the user sees a generic "✓ DB cleared" success message regardless.
+
+**Fix (2026-09-11):** per-table drop failures are now collected and surfaced in an error message (`⚠ DB cleared with errors — ...`) instead of being silently swallowed; an exception in the outer clear itself is now also reported. Covered by `tests/misc-fixes.spec.js` (success path); the failure path is straightforward and was verified by code inspection.
 
 ---
 
@@ -110,8 +116,9 @@ Add a context menu on canvas right-click: "Add table", "Auto layout", "Select al
 
 ### Results & Execution
 
-**F-017 — Export results as CSV** 🔴  
-After running a query, allow downloading the result table as a CSV file. One-click button below the results table.
+**F-017 — Export results as CSV** ✅ Fixed  
+After running a query, allow downloading the result table as a CSV file. One-click button below the results table.  
+*Update 2026-09-11:* Done — an "Export CSV" button appears below Results once a query returns rows, downloading a properly-escaped CSV (RFC 4180-style: quotes commas/quotes/newlines, doubles embedded `"`). Covered by `tests/export-csv.spec.js`.
 
 **F-018 — Export results as JSON** 🟡  
 Same as F-017 but JSON format.
@@ -122,8 +129,9 @@ Keep a log of the last N queries run (with timestamps and row counts) so users c
 **F-020 — Editable result cells** 🟢  
 For simple single-table queries, allow clicking a result cell to edit the value and generate an UPDATE statement.
 
-**F-021 — Load SQLite .db file** 🔴  
-Allow uploading an actual `.sqlite` or `.db` file via drag-and-drop, loading it into sql.js so users can query real data without manual seed scripts.
+**F-021 — Load SQLite .db file** ✅ Fixed  
+Allow uploading an actual `.sqlite` or `.db` file via drag-and-drop, loading it into sql.js so users can query real data without manual seed scripts.  
+*Update 2026-09-11:* Done — a drop zone / file picker on the Seed DB tab loads an uploaded `.sqlite`/`.db`/`.sqlite3` file's bytes into a new `sql.js` `Database`, and auto-populates the schema panel from its `sqlite_master` contents (same as pasting DDL, so tables still need "+ Add All to Canvas" before they're queryable — consistent with the existing Parse DDL flow). Covered by `tests/load-db-file.spec.js`.
 
 **F-035 — EXPLAIN QUERY PLAN view** 🟢  
 **Added 2026-09-08.** sql.js supports `EXPLAIN QUERY PLAN`. Add a tab/toggle next to Results that runs the built query prefixed with `EXPLAIN QUERY PLAN` and displays the plan — a useful learning aid alongside the visual builder.
@@ -172,9 +180,10 @@ Encode the current query state in the URL hash so it can be shared as a link.
 **I-001 — GitHub Actions deploy to Pages** 🟡  
 Add a `.github/workflows/deploy.yml` that auto-publishes `index.html` to GitHub Pages on every push to `main`.
 
-**I-002 — Test fixture: sample_schema.sql** 🔴  
+**I-002 — Test fixture: sample_schema.sql** ✅ Fixed  
 Add `test/sample_schema.sql` containing the sqlite_master INSERT output used for manual testing. Needed for reproducible bug reports.  
-*Update 2026-08-26:* a minimal 2-table repro (one table with a `CHECK`/`DEFAULT ''`) was enough to reproduce B-001 in isolation outside the browser (Node, by extracting the parser functions and running them directly) — that fixture is a good starting point for this and for I-003's smoke test.
+*Update 2026-08-26:* a minimal 2-table repro (one table with a `CHECK`/`DEFAULT ''`) was enough to reproduce B-001 in isolation outside the browser (Node, by extracting the parser functions and running them directly) — that fixture is a good starting point for this and for I-003's smoke test.  
+*Update 2026-09-11:* Done — `test/sample_schema.sql` now exists: realistic `INSERT INTO sqlite_master VALUES(...)` output for 3 tables + an index + a view, including the unquoted `rootpage` column (B-004) and an escaped-quote `DEFAULT`/`CHECK` (B-001), so a single paste regression-tests both fixes at once. Covered by `tests/fixture-schema.spec.js`.
 
 **I-003 — Automated smoke test** ✅ Fixed  
 A simple Node.js or Playwright script that loads `index.html`, pastes the sample schema, clicks Parse, and asserts that N tables are found. Blocks B-001 regression.  
@@ -201,3 +210,9 @@ A simple Node.js or Playwright script that loads `index.html`, pastes the sample
 | B-001 | sqlite_master format: parseDDL returned 0 tables (double-unescape bug in extractFromSqliteMaster) | v0.4.4 |
 | I-003 | Automated smoke test (Playwright: `tests/smoke.spec.js`, `tests/schema-command.spec.js`) | — |
 | B-005 | WHERE values with apostrophes broke generated SQL; also fixed a `hl()` syntax-highlighter HTML corruption bug found while testing | — |
+| B-004 | sqlite_master extractor broke on unquoted columns (e.g. `rootpage`) between quoted values | — |
+| B-007 | Run Query always used SQLite semantics with no indication when a different dialect was selected | — |
+| B-008 | Clear DB swallowed per-table DROP errors silently | — |
+| I-002 | Test fixture `test/sample_schema.sql` (also regression-tests B-001 + B-004) | — |
+| F-017 | Export query results as CSV | — |
+| F-021 | Load an existing `.sqlite`/`.db` file via drag-and-drop or file picker | — |
