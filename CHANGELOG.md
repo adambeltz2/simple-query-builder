@@ -6,6 +6,31 @@ Versioning follows [Semantic Versioning](https://semver.org/) from `0.x.y`.
 
 ---
 
+## [0.5.0] — 2026-09-11
+
+### Added
+Cleared the entire feature backlog (32 items) plus the last 3 open bugs and all infrastructure items in one release. Highlights:
+- GROUP BY / HAVING, aggregate functions (COUNT/SUM/AVG/MIN/MAX), column aliases, BETWEEN/NOT BETWEEN, WHERE condition grouping with `(`/`)`, a subquery editor for `IN (...)`, and inline type-mismatch hints
+- UNION / UNION ALL, CTE (`WITH`) support and subqueries in `FROM` for the SQL→Visual reverse parser
+- Composite (multi-column) join keys
+- PostgreSQL and MySQL DDL dialect support (SERIAL, `::casts`, schema-qualified names, AUTO_INCREMENT, ENGINE=, backtick identifiers) — also fixed backtick/quoted `CONSTRAINT` names not being recognized at all
+- Canvas: collapsible nodes, color-coded groups, right-click context menu, minimap, saved per-schema layouts, undo/redo, keyboard-operable node movement with ARIA labels
+- Results: export as CSV/JSON, editable cells (single-table queries → UPDATE), EXPLAIN QUERY PLAN view, query history
+- Schema: export as JSON, upload from `.sql` file, named saved schemas, diff-on-reimport
+- Query state persistence per schema across refresh, and shareable query links via URL hash
+- Dark/light theme toggle, keyboard shortcuts (Run/Copy/Escape/Delete), responsive mobile tab layout
+- GitHub Actions workflow to deploy to GitHub Pages
+
+### Fixed
+- Run Query now notes when execution semantics (always SQLite) don't match the selected dialect
+- Clear DB now surfaces per-table DROP failures instead of swallowing them
+- `sqlite_master` extraction now tolerates the unquoted `rootpage` column between quoted values
+
+### Testing
+Added a fixture (`test/sample_schema.sql`) and ~65 new Playwright tests covering all of the above; full suite run via `npm install && npm test`.
+
+---
+
 ## [0.4.4] — 2026-08-26
 
 ### Fixed

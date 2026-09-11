@@ -19,41 +19,45 @@ Queries can be run immediately against an in-browser SQLite database powered by 
 ## Features
 
 ### Schema Import
-- Paste raw `CREATE TABLE` DDL directly
+- Paste raw `CREATE TABLE` DDL directly, or upload a `.sql` file
 - Paste the full output of a `sqlite_master` query (including indexes, triggers, views) — the parser auto-detects the format
+- PostgreSQL (`SERIAL`, `::casts`, schema-qualified names) and MySQL (`AUTO_INCREMENT`, `ENGINE=`, backtick identifiers) DDL variants are supported
 - Foreign key relationships are detected from inline `REFERENCES` and standalone `CONSTRAINT ... FOREIGN KEY` definitions
 - Views and triggers are recognized and catalogued (views shown in the Views tab, triggers silently ignored)
-
-To get your full schema from SQLite:
-```sql
-SELECT type, name, tbl_name, sql
-FROM sqlite_master
-WHERE sql IS NOT NULL
-ORDER BY type, name;
-```
+- Re-parsing shows a diff against the previously loaded schema (added/dropped tables and columns)
+- Export the parsed schema as JSON, or save it under a name in `localStorage` to reload later
+- Get your schema out of a real database with the built-in per-dialect command shown in the schema panel (a `sqlite_master` query, `mysqldump`, or `pg_dump`)
 
 ### Visual Canvas
-- Drag table cards freely on the canvas
-- Draw joins by dragging from one column's port dot to another
+- Drag table cards freely on the canvas; collapse a card to just its header, or color-code it via right-click
+- Draw joins by dragging from one column's port dot to another, including composite (multi-column) join keys
 - Bezier curves rendered between joined columns with join-type labels
-- Zoom in/out, pan with Space+drag
-- Auto Layout arranges tables in a grid
+- Zoom in/out, pan with Space+drag; a minimap appears once several tables are on canvas
+- Auto Layout arranges tables in a grid; layouts are remembered per schema
+- Keyboard-operable: Tab to a table, arrow keys to move it, Delete to remove it; ARIA labels throughout
+- Undo/redo (Ctrl+Z / Ctrl+Shift+Z) for table add/remove/move, join changes, and column toggles
 
 ### Query Builder
 - **FROM** — pick the base table
 - **JOIN** — type selector (INNER / LEFT / RIGHT / FULL OUTER / CROSS) with column pickers; syncs with canvas joins
-- **SELECT** — checkbox column picker grouped by table; click columns on canvas nodes to toggle
-- **WHERE** — condition builder with operators (`=`, `!=`, `<`, `>`, `LIKE`, `IN`, `IS NULL`, etc.) and AND/OR logic
+- **SELECT** — checkbox column picker grouped by table, with optional column aliases and aggregate functions (`COUNT`/`SUM`/`AVG`/`MIN`/`MAX`)
+- **WHERE** — condition builder with operators (`=`, `!=`, `<`, `>`, `LIKE`, `IN`, `BETWEEN`, `IS NULL`, etc.), AND/OR logic, `(`/`)` grouping, a subquery editor for `IN (...)`, and inline type-mismatch hints
+- **GROUP BY / HAVING**
 - **ORDER BY / LIMIT / DISTINCT**
+- **UNION / UNION ALL** with a second, hand-written query
+- Save the current query per-schema (survives a refresh) or share it as a URL
 
 ### SQL Dialects
 Switch between SQLite, MySQL, and PostgreSQL quoting styles at any time.
 
 ### Run Queries
-Seed the in-browser SQLite database (Seed DB tab) with `CREATE TABLE` + `INSERT` statements — or drop in an existing `.sqlite`/`.db`/`.sqlite3` file to load its schema and data directly — then run your visually-built query and see results in a live table. Export any result set as a CSV file with one click.
+Seed the in-browser SQLite database (Seed DB tab) with `CREATE TABLE` + `INSERT` statements — or drop in an existing `.sqlite`/`.db`/`.sqlite3` file to load its schema and data directly — then run your visually-built query and see results in a live table. Edit a result cell directly (single-table queries) to issue an `UPDATE`, view the `EXPLAIN QUERY PLAN`, export results as CSV or JSON, and revisit past runs from the Query History tab.
 
 ### SQL → Visual
-Use **↙ Parse SQL** in the topbar to paste any SELECT query and have it reverse-parsed into the visual builder — tables added to canvas, joins drawn, columns checked, WHERE conditions populated.
+Use **↙ Parse SQL** in the topbar to paste any SELECT query and have it reverse-parsed into the visual builder — tables added to canvas, joins drawn, columns checked, WHERE conditions populated. `WITH` CTEs and subqueries in `FROM` are supported as virtual tables; a query referencing a table outside the loaded schema surfaces a warning instead of silently dropping it.
+
+### Look & Feel
+Dark theme by default, with a light-mode toggle. The three-panel layout collapses to a mobile-friendly tab bar (Schema / Canvas & Builder / SQL & Results) below 768px.
 
 ---
 
