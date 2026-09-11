@@ -50,7 +50,7 @@ ORDER BY type, name;
 Switch between SQLite, MySQL, and PostgreSQL quoting styles at any time.
 
 ### Run Queries
-Seed the in-browser SQLite database (Seed DB tab) with `CREATE TABLE` + `INSERT` statements, then run your visually-built query and see results in a live table.
+Seed the in-browser SQLite database (Seed DB tab) with `CREATE TABLE` + `INSERT` statements — or drop in an existing `.sqlite`/`.db`/`.sqlite3` file to load its schema and data directly — then run your visually-built query and see results in a live table. Export any result set as a CSV file with one click.
 
 ### SQL → Visual
 Use **↙ Parse SQL** in the topbar to paste any SELECT query and have it reverse-parsed into the visual builder — tables added to canvas, joins drawn, columns checked, WHERE conditions populated.
