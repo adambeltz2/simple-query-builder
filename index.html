@@ -12,6 +12,12 @@
   --text:#e8ecf4;--muted:#6b7394;
   --mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;
 }
+body.light{
+  --bg:#f4f5f8;--panel:#ffffff;--surface:#eef0f5;--border:#d7dbe4;
+  --accent:#0e9f6e;--blue:#2563eb;--red:#dc2626;--gold:#b45309;--purple:#7c3aed;--orange:#c2410c;
+  --text:#12141c;--muted:#5b6178;
+}
+body.light .tnode-hdr{color:var(--blue)}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden}
 .app{display:grid;grid-template-rows:48px 1fr;height:100vh}
@@ -24,6 +30,18 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .dbtn.on{background:var(--surface);color:var(--accent);border:1px solid var(--border)}
 .ml{margin-left:auto}
 .ws{display:grid;grid-template-columns:240px 1fr 300px;height:100%;overflow:hidden}
+.mobile-tabs{display:none;gap:2px;background:var(--panel);border-bottom:1px solid var(--border);padding:5px;flex-shrink:0}
+.mobile-tabs button{flex:1;padding:7px 4px;font-size:10px;font-weight:600;border:none;background:var(--surface);color:var(--muted);border-radius:5px;cursor:pointer;font-family:var(--sans)}
+.mobile-tabs button.on{background:var(--accent);color:#000}
+@media (max-width: 768px) {
+  .app{grid-template-rows:48px auto 1fr}
+  .mobile-tabs{display:flex}
+  .ws{display:block;height:100%;overflow-y:auto}
+  .ws .panel, .ws .center{display:none;height:100%}
+  .ws.mp-schema .panel:first-of-type{display:flex}
+  .ws.mp-canvas .center{display:flex}
+  .ws.mp-sql .panel:last-of-type{display:flex}
+}
 .panel{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border)}
 .panel:last-child{border-right:none;border-left:1px solid var(--border)}
 .ph{padding:8px 12px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);background:var(--panel);flex-shrink:0;display:flex;align-items:center;gap:6px}
@@ -85,6 +103,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .c-svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}
 .c-tables{position:absolute;top:0;left:0;z-index:2}
 .c-bar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:4px;background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:4px 7px;z-index:10;align-items:center}
+.minimap{position:absolute;top:8px;right:8px;background:rgba(19,22,30,.85);border:1px solid var(--border);border-radius:6px;z-index:10}
+body.light .minimap{background:rgba(255,255,255,.85)}
 .zoom-lbl{font-size:9px;color:var(--muted);min-width:30px;text-align:center}
 .mode-pill{font-size:8px;font-weight:700;padding:2px 6px;border-radius:3px;background:rgba(79,255,176,.08);color:var(--accent);border:1px solid rgba(79,255,176,.15)}
 .mode-pill.join-active{background:rgba(61,143,255,.15);color:var(--blue);border-color:rgba(61,143,255,.3)}
@@ -96,6 +116,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .tnode-hdr{padding:6px 9px;font-size:11px;font-weight:700;color:var(--blue);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:move;border-radius:5px 5px 0 0;user-select:none;gap:6px}
 .tnode-hdr-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tnode-x{cursor:pointer;color:var(--muted);font-size:11px;line-height:1;flex-shrink:0}
+.tnode-collapse{cursor:pointer;color:var(--muted);font-size:9px;line-height:1;flex-shrink:0}
+.tnode-collapse:hover{color:var(--accent)}
+.ctx-menu{position:fixed;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:4px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.4);min-width:150px}
+.ctx-item{padding:5px 9px;font-size:10px;cursor:pointer;border-radius:4px;color:var(--text);white-space:nowrap}
+.ctx-item:hover{background:var(--surface);color:var(--accent)}
+.ctx-sep{height:1px;background:var(--border);margin:4px 2px}
+.ctx-colors{display:flex;gap:4px;padding:4px 9px}
+.ctx-color{width:14px;height:14px;border-radius:3px;cursor:pointer;border:1px solid var(--border)}
 .tnode-x:hover{color:var(--red)}
 .tnode-col{display:flex;align-items:center;gap:4px;padding:3px 9px;font-size:9px;font-family:var(--mono);cursor:pointer;border-bottom:1px solid rgba(255,255,255,.025);position:relative;transition:background .1s}
 .tnode-col:last-child{border-bottom:none}
@@ -123,6 +151,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .kwd{font-family:var(--mono);font-size:9px;color:var(--muted);font-weight:600;white-space:nowrap}
 .join-row{display:flex;align-items:center;gap:4px;margin-bottom:5px;flex-wrap:wrap;padding:6px 7px;background:var(--surface);border-radius:5px;border:1px solid var(--border)}
 .where-row{display:flex;align-items:center;gap:4px;margin-bottom:4px;flex-wrap:wrap;padding:5px 7px;background:var(--surface);border-radius:5px;border:1px solid var(--border)}
+.where-hint{font-size:8px;color:var(--gold);margin:-2px 0 6px 4px}
 .col-group{margin-bottom:7px}
 .col-group-lbl{font-size:8px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;padding:2px 0;border-bottom:1px solid var(--border)}
 .col-check{display:flex;align-items:center;gap:5px;padding:2px 0;font-size:9px;font-family:var(--mono);cursor:pointer}
@@ -149,6 +178,8 @@ table{width:100%;border-collapse:collapse;font-size:9px;font-family:var(--mono)}
 thead{background:var(--surface);position:sticky;top:0}
 th{padding:4px 7px;text-align:left;color:var(--accent);border-bottom:1px solid var(--border);font-weight:700;white-space:nowrap}
 td{padding:3px 7px;border-bottom:1px solid rgba(255,255,255,.03);white-space:nowrap}
+.editable-cell{cursor:text}
+.editable-cell:hover{outline:1px solid var(--accent);outline-offset:-1px}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:rgba(255,255,255,.02)}
 .null-v{color:var(--muted);font-style:italic}
@@ -177,12 +208,19 @@ tr:hover td{background:rgba(255,255,255,.02)}
   <div class="vsep"></div>
   <button class="btn sm" id="btnPasteSQL">↙ Parse SQL</button>
   <div class="ml row">
+    <button class="btn sm" id="btnTheme" title="Toggle light/dark theme">🌙</button>
     <button class="btn sm" id="btnCopyTop">⎘ Copy</button>
     <button class="btn sm pri" id="btnRunTop">▶ Run</button>
   </div>
 </div>
 
-<div class="ws">
+<div class="mobile-tabs" id="mobileTabs">
+  <button data-mp="schema" class="on">Schema</button>
+  <button data-mp="canvas">Canvas &amp; Builder</button>
+  <button data-mp="sql">SQL &amp; Results</button>
+</div>
+
+<div class="ws mp-schema" id="ws">
 
 <!-- LEFT -->
 <div class="panel">
@@ -213,7 +251,24 @@ Use '↙ Parse SQL' in topbar for SELECT queries."></textarea>
       <button class="btn sm" id="btnSample">Sample</button>
       <button class="btn sm dng" id="btnClearSchema">Clear</button>
     </div>
+    <div class="row" style="margin-top:5px">
+      <button class="btn sm" id="btnUploadSql" style="flex:1">⇧ Upload .sql</button>
+      <button class="btn sm" id="btnExportSchemaJson" style="flex:1">⇩ Export JSON</button>
+      <input type="file" id="sqlFileInput" accept=".sql,.txt" class="hidden"/>
+    </div>
     <div id="parseMsg"></div>
+    <div id="schemaDiffMsg" style="margin-top:5px"></div>
+
+    <div class="sl" style="margin-top:8px">Saved schemas</div>
+    <div class="row" style="margin-top:4px">
+      <select class="si" id="savedSchemaSel" style="flex:1"><option value="">— none saved —</option></select>
+      <button class="btn xs" id="btnLoadSchema">Load</button>
+      <button class="btn xs dng" id="btnDeleteSchema">Del</button>
+    </div>
+    <div class="row" style="margin-top:4px">
+      <input class="ti" id="saveSchemaName" placeholder="name to save current schema as" style="flex:1"/>
+      <button class="btn xs pri" id="btnSaveSchema">Save</button>
+    </div>
     <div id="debugPanel" style="display:none;margin-top:6px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:6px;font-family:var(--mono);font-size:8px;color:var(--muted);max-height:120px;overflow-y:auto;line-height:1.6" id="debugOut"></div>
 
     <div style="margin-top:8px" id="schemaPanel">
@@ -247,7 +302,9 @@ Use '↙ Parse SQL' in topbar for SELECT queries."></textarea>
   <div class="center-top">
     <span style="font-size:9px;color:var(--muted);font-weight:600">CANVAS</span>
     <span style="font-size:9px;color:var(--muted)">— drag headers · drag dots to join columns</span>
-    <button class="btn sm" id="btnLayout" style="margin-left:auto">Auto Layout</button>
+    <button class="btn sm" id="btnUndo" style="margin-left:auto" title="Undo (Ctrl+Z)">↶ Undo</button>
+    <button class="btn sm" id="btnRedo" title="Redo (Ctrl+Shift+Z)">↷ Redo</button>
+    <button class="btn sm" id="btnLayout">Auto Layout</button>
     <button class="btn sm" id="btnResetView">Reset</button>
   </div>
 
@@ -261,6 +318,7 @@ Use '↙ Parse SQL' in topbar for SELECT queries."></textarea>
       <div class="vsep"></div>
       <span class="mode-pill" id="modePill">Click</span>
     </div>
+    <svg class="minimap hidden" id="minimap" width="120" height="80"></svg>
   </div>
 
   <div class="builder" style="padding-bottom:28px">
@@ -291,6 +349,16 @@ Use '↙ Parse SQL' in topbar for SELECT queries."></textarea>
     </div>
 
     <div class="sc">
+      <div class="sc-h">Group By <button class="btn xs" id="btnAddGroupBy">+ Add</button></div>
+      <div class="sc-b" id="groupByList"><div class="es">No GROUP BY columns</div></div>
+    </div>
+
+    <div class="sc">
+      <div class="sc-h">Having <button class="btn xs" id="btnAddHaving">+ Add</button></div>
+      <div class="sc-b" id="havingList"><div class="es">Add a GROUP BY column first</div></div>
+    </div>
+
+    <div class="sc">
       <div class="sc-h">Order / Limit / Distinct</div>
       <div class="sc-b" style="display:flex;flex-direction:column;gap:6px">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
@@ -307,6 +375,18 @@ Use '↙ Parse SQL' in topbar for SELECT queries."></textarea>
       </div>
     </div>
 
+    <div class="sc">
+      <div class="sc-h">Union</div>
+      <div class="sc-b" style="display:flex;flex-direction:column;gap:6px">
+        <select class="si" id="unionType">
+          <option value="">— none —</option>
+          <option value="UNION">UNION</option>
+          <option value="UNION ALL">UNION ALL</option>
+        </select>
+        <textarea class="ddl-ta hidden" id="unionQuery" rows="4" placeholder="SELECT ... second query to combine with UNION"></textarea>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -318,6 +398,7 @@ Use '↙ Parse SQL' in topbar for SELECT queries."></textarea>
       <button class="tab on" data-t="sql">SQL</button>
       <button class="tab" data-t="results">Results</button>
       <button class="tab" data-t="seed">Seed DB</button>
+      <button class="tab" data-t="history">History</button>
     </div>
 
     <div id="tSQL">
@@ -326,12 +407,19 @@ Use '↙ Parse SQL' in topbar for SELECT queries."></textarea>
         <button class="btn sm" id="btnCopy2" style="flex:1">⎘ Copy SQL</button>
         <button class="btn sm pri" id="btnRun2" style="flex:1">▶ Run Query</button>
       </div>
+      <div class="row" style="margin-top:5px">
+        <button class="btn sm" id="btnExplain" style="flex:1">◈ Explain Plan</button>
+        <button class="btn sm" id="btnShareUrl" style="flex:1">🔗 Share</button>
+      </div>
     </div>
 
     <div id="tResults" class="hidden">
       <div id="runMsg"></div>
       <div id="resultsArea"><div class="es">Run a query to see results</div></div>
-      <button class="btn sm hidden" id="btnExportCsv" style="margin-top:6px;width:100%">⇩ Export CSV</button>
+      <div class="row hidden" id="exportRow" style="margin-top:6px">
+        <button class="btn sm" id="btnExportCsv" style="flex:1">⇩ CSV</button>
+        <button class="btn sm" id="btnExportJson" style="flex:1">⇩ JSON</button>
+      </div>
     </div>
 
     <div id="tSeed" class="hidden">
@@ -351,6 +439,13 @@ Use '↙ Parse SQL' in topbar for SELECT queries."></textarea>
         <input type="file" id="dbFileInput" accept=".sqlite,.sqlite3,.db" class="hidden"/>
       </div>
       <div id="dbFileMsg" style="margin-top:5px"></div>
+    </div>
+
+    <div id="tHistory" class="hidden">
+      <div class="row" style="margin-bottom:6px">
+        <button class="btn xs dng" id="btnClearHistory" style="margin-left:auto">Clear History</button>
+      </div>
+      <div id="historyList"><div class="es">No queries run yet</div></div>
     </div>
   </div>
 </div>
@@ -372,7 +467,20 @@ Use '↙ Parse SQL' in topbar for SELECT queries."></textarea>
   </div>
 </div>
 
+<div class="modal-ov hidden" id="subqueryModal">
+  <div class="modal">
+    <h3>Subquery editor</h3>
+    <p style="font-size:10px;color:var(--muted);margin-bottom:8px">Write a SELECT statement to use as the IN (...) subquery for this condition.</p>
+    <textarea class="ddl-ta" id="subqueryText" rows="8" placeholder="SELECT customer_id FROM orders WHERE status = 'shipped'"></textarea>
+    <div class="row" style="margin-top:8px">
+      <button class="btn pri" id="btnSubqueryOk">Use Subquery</button>
+      <button class="btn" id="btnSubqueryClose">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
+<div class="ctx-menu hidden" id="ctxMenu"></div>
 <div id="ver-bar" style="position:fixed;bottom:0;left:0;right:0;height:20px;background:#0a0c10;border-top:1px solid #1e2230;display:flex;align-items:center;justify-content:space-between;padding:0 12px;z-index:50;pointer-events:none">
   <span style="font-family:JetBrains Mono,monospace;font-size:9px;color:#3a3f55">QueryCraft</span>
   <span style="font-family:JetBrains Mono,monospace;font-size:9px;color:#3a3f55" id="verStr"></span>
@@ -384,8 +492,8 @@ Use '↙ Parse SQL' in topbar for SELECT queries."></textarea>
 // ══════════════════════════════════════════════════════
 // VERSION
 // ══════════════════════════════════════════════════════
-const APP_VERSION = "0.4.4";
-const BUILD_DATE  = "2026-08-26";
+const APP_VERSION = "0.5.0";
+const BUILD_DATE  = "2026-09-11";
 
 
 // ══════════════════════════════════════════════════════
@@ -397,9 +505,15 @@ const S = {
   fks: [],      // [{fromTable,fromCol,toTable,toCol}]
   views: [],    // [{name,sql}]
   nodes: {},    // tableName -> {x,y}
+  nodeMeta: {}, // tableName -> {collapsed, color}
   joins: [],    // [{type,lt,lc,rt,rc}]
   selCols: new Set(),
+  colAliases: {}, // "table.col" -> alias string
+  colAgg: {},     // "table.col" -> aggregate function name (COUNT/SUM/AVG/MIN/MAX)
+  groupBy: [],    // ["table.col", ...]
+  having: [],     // [{aggFunc, col, op, val, logic}]
   wheres: [],
+  unionType: '', unionQuery: '',
   fromTable: '',
   orderCol: '', orderDir: 'ASC', limit: '', distinct: false,
   zoom: 1, panX: 0, panY: 0,
@@ -514,7 +628,7 @@ function parseDDL(raw) {
     if (/^CREATE\s+TRIGGER/i.test(s)) { trgCount++; continue; }
     if (/^CREATE\s+TABLE/i.test(s)) {
       tblAttempts++;
-      const tm = s.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?[`"[]?(\w+)[`"\]]?\s*\(([\s\S]+)\)\s*$/i);
+      const tm = s.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:[`"[]?\w+[`"\]]?\.)?[`"[]?(\w+)[`"\]]?\s*\(([\s\S]+)\)[\s\S]*$/i);
       if (!tm) {
         console.warn('[QC] TABLE regex FAILED on:', s.slice(0,100), '...ENDS:', JSON.stringify(s.slice(-30)));
       } else {
@@ -560,17 +674,17 @@ function parseColDefs(body, tname, fks) {
     if (!d) continue;
 
     // Table constraint: PRIMARY KEY (cols)
-    if (/^(?:CONSTRAINT\s+\w+\s+)?PRIMARY\s+KEY/i.test(d)) {
+    if (/^(?:CONSTRAINT\s+[`"[]?\w+[`"\]]?\s+)?PRIMARY\s+KEY/i.test(d)) {
       const m = d.match(/PRIMARY\s+KEY\s*\(([^)]+)\)/i);
       if (m) m[1].split(',').map(c => c.trim().replace(/[`"[\]]/g, '')).forEach(c => {
         const f = cols.find(x => x.name === c); if (f) f.pk = true;
       });
       continue;
     }
-    if (/^(?:CONSTRAINT\s+\w+\s+)?UNIQUE\b/i.test(d) && !/^\w/.test(d.replace(/^CONSTRAINT\s+\w+\s+/i,''))) continue;
-    if (/^(?:CONSTRAINT\s+\w+\s+)?CHECK\b/i.test(d) && !/^\w/.test(d.replace(/^CONSTRAINT\s+\w+\s+/i,''))) continue;
-    if (/^(?:CONSTRAINT\s+\w+\s+)?FOREIGN\s+KEY/i.test(d)) {
-      const m = d.match(/FOREIGN\s+KEY\s*\(([^)]+)\)\s*REFERENCES\s+[`"[]?(\w+)[`"\]]?\s*\(([^)]+)\)/i);
+    if (/^(?:CONSTRAINT\s+[`"[]?\w+[`"\]]?\s+)?UNIQUE\b/i.test(d) && !/^\w/.test(d.replace(/^CONSTRAINT\s+[`"[]?\w+[`"\]]?\s+/i,''))) continue;
+    if (/^(?:CONSTRAINT\s+[`"[]?\w+[`"\]]?\s+)?CHECK\b/i.test(d) && !/^\w/.test(d.replace(/^CONSTRAINT\s+[`"[]?\w+[`"\]]?\s+/i,''))) continue;
+    if (/^(?:CONSTRAINT\s+[`"[]?\w+[`"\]]?\s+)?FOREIGN\s+KEY/i.test(d)) {
+      const m = d.match(/FOREIGN\s+KEY\s*\(([^)]+)\)\s*REFERENCES\s+(?:[`"[]?\w+[`"\]]?\.)?[`"[]?(\w+)[`"\]]?\s*\(([^)]+)\)/i);
       if (m) fks.push({
         fromTable: tname,
         fromCol: m[1].trim().replace(/[`"[\]]/g, ''),
@@ -587,7 +701,7 @@ function parseColDefs(body, tname, fks) {
     const rawType = parts[1] || 'TEXT';
     const type = rawType.replace(/\(.*\)/, '').toUpperCase();
     const isPK = /\bPRIMARY\s+KEY\b/i.test(d);
-    const fkm = d.match(/\bREFERENCES\s+[`"[]?(\w+)[`"\]]?\s*\(([^)]+)\)/i);
+    const fkm = d.match(/\bREFERENCES\s+(?:[`"[]?\w+[`"\]]?\.)?[`"[]?(\w+)[`"\]]?\s*\(([^)]+)\)/i);
     if (fkm) fks.push({ fromTable: tname, fromCol: name, toTable: fkm[1], toCol: fkm[2].trim().replace(/[`"[\]]/g, '') });
     cols.push({ name, type, pk: isPK, fk: !!fkm });
   }
@@ -612,14 +726,82 @@ function splitColDefs(body) {
 // ══════════════════════════════════════════════════════
 // SQL → VISUAL PARSER
 // ══════════════════════════════════════════════════════
+// F-022: split a leading WITH cte1 AS (...), cte2 AS (...) block off a query,
+// returning the CTE definitions and the remaining main SELECT text.
+function extractCTEs(s) {
+  const ctes = [];
+  let rest = s;
+  const m = rest.match(/^WITH\s+/i);
+  if (!m) return { ctes, rest };
+  let i = m[0].length;
+  while (i < rest.length) {
+    const nameM = rest.slice(i).match(/^\s*[`"[]?(\w+)[`"\]]?\s+AS\s*\(/i);
+    if (!nameM) break;
+    const name = nameM[1];
+    i += nameM[0].length;
+    let depth = 1;
+    const start = i;
+    while (i < rest.length && depth > 0) {
+      if (rest[i] === '(') depth++;
+      else if (rest[i] === ')') depth--;
+      i++;
+    }
+    ctes.push({ name, body: rest.slice(start, i - 1).trim() });
+    while (i < rest.length && /[\s,]/.test(rest[i])) i++;
+    if (rest[i] !== ',') break;
+    i++; // skip comma, loop for next CTE
+  }
+  return { ctes, rest: rest.slice(i).trim() };
+}
+
+function deriveColumnsFromSelect(body) {
+  const m = body.match(/SELECT\s+(?:DISTINCT\s+)?([\s\S]+?)\s+FROM\s/i);
+  if (!m) return [];
+  if (m[1].trim() === '*') return [];
+  return m[1].split(',').map((c, i) => {
+    const p = c.trim();
+    const asM = p.match(/\s+AS\s+[`"[]?(\w+)[`"\]]?$/i);
+    if (asM) return asM[1];
+    const idM = p.match(/([`"[]?)(\w+)\1?$/);
+    return idM ? idM[2] : `col${i + 1}`;
+  });
+}
+
 function parseSQL(sql) {
-  const s = sql.replace(/\s+/g, ' ').replace(/;$/, '').trim();
+  let s = sql.replace(/\s+/g, ' ').replace(/;$/, '').trim();
+  const { ctes, rest } = extractCTEs(s);
+  ctes.forEach(cte => {
+    if (!S.tables[cte.name]) {
+      S.tables[cte.name] = deriveColumnsFromSelect(cte.body).map(name => ({ name, type: 'TEXT', pk: false, fk: false }));
+    }
+  });
+  if (ctes.length) s = rest;
   const selM = s.match(/SELECT\s+(DISTINCT\s+)?([\s\S]+?)\s+FROM\s/i);
   if (!selM) return null;
   const distinct = !!selM[1], colsPart = selM[2].trim();
-  const fromM = s.match(/FROM\s+[`"[]?(\w+)[`"\]]?(?:\s+(?:AS\s+)?[`"[]?(\w+)[`"\]]?)?/i);
-  if (!fromM) return null;
-  const fromTable = fromM[1], fromAlias = fromM[2] || fromM[1];
+
+  let fromTable, fromAlias;
+  // F-023: FROM (SELECT ...) [AS] alias — subquery in FROM becomes a virtual table.
+  const fromSubM = s.match(/FROM\s*\(/i);
+  if (fromSubM) {
+    let i = fromSubM.index + fromSubM[0].length, depth = 1;
+    const start = i;
+    while (i < s.length && depth > 0) {
+      if (s[i] === '(') depth++; else if (s[i] === ')') depth--;
+      i++;
+    }
+    const subBody = s.slice(start, i - 1).trim();
+    const aliasM = s.slice(i).match(/^\s*(?:AS\s+)?[`"[]?(\w+)[`"\]]?/i);
+    fromAlias = aliasM && aliasM[1] ? aliasM[1] : 'sub1';
+    fromTable = fromAlias;
+    if (!S.tables[fromTable]) {
+      S.tables[fromTable] = deriveColumnsFromSelect(subBody).map(name => ({ name, type: 'TEXT', pk: false, fk: false }));
+    }
+  } else {
+    const fromM = s.match(/FROM\s+[`"[]?(\w+)[`"\]]?(?:\s+(?:AS\s+)?[`"[]?(\w+)[`"\]]?)?/i);
+    if (!fromM) return null;
+    fromTable = fromM[1]; fromAlias = fromM[2] || fromM[1];
+  }
   const aliases = { [fromAlias]: fromTable, [fromTable]: fromTable };
 
   const joins = [];
@@ -674,14 +856,22 @@ function buildSQL() {
   if (!cols.length) lines.push('SELECT ' + d + '*');
   else {
     lines.push('SELECT ' + d);
-    lines.push(cols.map((c, i) => { const [t, col] = c.split('.'); return '  ' + q(t) + '.' + q(col) + (i < cols.length - 1 ? ',' : ''); }).join('\n'));
+    lines.push(cols.map((c, i) => {
+      const [t, col] = c.split('.');
+      const alias = S.colAliases[c];
+      const agg = S.colAgg[c];
+      const expr = agg ? `${agg}(${q(t)}.${q(col)})` : `${q(t)}.${q(col)}`;
+      return '  ' + expr + (alias ? ' AS ' + q(alias) : '') + (i < cols.length - 1 ? ',' : '');
+    }).join('\n'));
   }
   lines.push('FROM ' + q(from));
 
   for (const j of S.joins) {
     if (!j.lt || !j.lc || !j.rt || !j.rc) continue;
     lines.push(`${j.type} JOIN ${q(j.rt)}`);
-    lines.push(`  ON ${q(j.lt)}.${q(j.lc)} = ${q(j.rt)}.${q(j.rc)}`);
+    const extraPairs = (j.extra || []).filter(ex => ex.lc && ex.rc);
+    lines.push(`  ON ${q(j.lt)}.${q(j.lc)} = ${q(j.rt)}.${q(j.rc)}` +
+      extraPairs.map(ex => `\n  AND ${q(j.lt)}.${q(ex.lc)} = ${q(j.rt)}.${q(ex.rc)}`).join(''));
   }
 
   const vw = S.wheres.filter(w => w.col && w.op);
@@ -698,12 +888,36 @@ function buildSQL() {
       else if (['BETWEEN', 'NOT BETWEEN'].includes(w.op)) vp = `${w.op} ${lit(w.val)} AND ${lit(w.val2)}`;
       else if (w.op === 'LIKE' || w.op === 'NOT LIKE') vp = `${w.op} '${esc(w.val)}'`;
       else vp = `${w.op} ${lit(w.val)}`;
-      lines.push(`${pre}${q(t)}.${q(c)} ${vp}`);
+      const open = w.open ? '(' : '';
+      const close = w.close ? ')' : '';
+      lines.push(`${pre}${open}${q(t)}.${q(c)} ${vp}${close}`);
     });
+  }
+
+  const groupCols = S.groupBy.filter(Boolean);
+  if (groupCols.length) {
+    lines.push('GROUP BY ' + groupCols.map(g => { const [t, c] = g.split('.'); return q(t) + '.' + q(c); }).join(', '));
+    const vh = S.having.filter(h => h.col && h.op);
+    if (vh.length) {
+      lines.push('HAVING');
+      vh.forEach((h, i) => {
+        const pre = i === 0 ? '  ' : `  ${h.logic} `;
+        const [t, c] = h.col.split('.');
+        const esc = v => String(v).replace(/'/g, "''");
+        const num = !isNaN(h.val) && h.val !== '';
+        const vp = num ? h.val : "'" + esc(h.val) + "'";
+        const expr = h.aggFunc ? `${h.aggFunc}(${q(t)}.${q(c)})` : `${q(t)}.${q(c)}`;
+        lines.push(`${pre}${expr} ${h.op} ${vp}`);
+      });
+    }
   }
 
   if (S.orderCol) { const [t, c] = S.orderCol.split('.'); lines.push(`ORDER BY ${q(t)}.${q(c)} ${S.orderDir}`); }
   if (S.limit && parseInt(S.limit) > 0) lines.push('LIMIT ' + S.limit);
+  if (S.unionType && S.unionQuery && S.unionQuery.trim()) {
+    lines.push(S.unionType);
+    lines.push(S.unionQuery.trim().replace(/;\s*$/, ''));
+  }
   lines.push(';');
   return lines.join('\n');
 }
@@ -730,6 +944,42 @@ const cTbls = () => document.getElementById('cTables');
 
 let dragging = null, joinDrag = null, panning = null, spaceDown = false, selectedNode = null;
 
+// ══════════════════════════════════════════════════════
+// UNDO/REDO FOR CANVAS CHANGES (F-027)
+// ══════════════════════════════════════════════════════
+const UNDO_LIMIT = 50;
+let undoStack = [], redoStack = [], undoSuppressed = false;
+function snapshotCanvasState() {
+  return { nodes: JSON.parse(JSON.stringify(S.nodes)), joins: JSON.parse(JSON.stringify(S.joins)), selCols: [...S.selCols] };
+}
+function pushUndoSnapshot() {
+  if (undoSuppressed) return;
+  undoStack.push(snapshotCanvasState());
+  if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+  redoStack = [];
+}
+function applyCanvasSnapshot(snap) {
+  S.nodes = JSON.parse(JSON.stringify(snap.nodes));
+  S.joins = JSON.parse(JSON.stringify(snap.joins));
+  S.selCols = new Set(snap.selCols);
+  if (S.fromTable && !S.nodes[S.fromTable]) S.fromTable = Object.keys(S.nodes)[0] || '';
+  renderCanvas(); renderSchema(); renderJoins(); renderColSel(); syncFromSel(); renderGroupByList(); renderSQL();
+}
+function undoCanvas() {
+  if (!undoStack.length) { toast('Nothing to undo'); return; }
+  redoStack.push(snapshotCanvasState());
+  const snap = undoStack.pop();
+  undoSuppressed = true; applyCanvasSnapshot(snap); undoSuppressed = false;
+  toast('Undo');
+}
+function redoCanvas() {
+  if (!redoStack.length) { toast('Nothing to redo'); return; }
+  undoStack.push(snapshotCanvasState());
+  const snap = redoStack.pop();
+  undoSuppressed = true; applyCanvasSnapshot(snap); undoSuppressed = false;
+  toast('Redo');
+}
+
 function selectNode(tname) {
   if (selectedNode) { const prev = nodeEl(selectedNode); if (prev) prev.classList.remove('sel'); }
   selectedNode = tname;
@@ -738,6 +988,115 @@ function selectNode(tname) {
 }
 
 function nodeEl(t) { return document.getElementById('nd-' + t); }
+
+// ══════════════════════════════════════════════════════
+// SAVE/RESTORE CANVAS LAYOUT (F-014)
+// ══════════════════════════════════════════════════════
+function schemaHash() {
+  const sig = Object.keys(S.tables).sort().map(t => t + ':' + (S.tables[t] || []).map(c => c.name).sort().join(',')).join('|');
+  let h = 5381;
+  for (let i = 0; i < sig.length; i++) h = ((h * 33) ^ sig.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+}
+function saveLayout() {
+  if (!Object.keys(S.tables).length) return;
+  try { localStorage.setItem('qc-layout-' + schemaHash(), JSON.stringify(S.nodes)); } catch (e) {}
+}
+function restoreLayoutFor(tname) {
+  try {
+    const saved = JSON.parse(localStorage.getItem('qc-layout-' + schemaHash()) || '{}');
+    if (saved[tname]) S.nodes[tname] = saved[tname];
+  } catch (e) {}
+}
+
+// ══════════════════════════════════════════════════════
+// QUERY STATE: save/restore per schema (F-029) + share via URL (F-030)
+// ══════════════════════════════════════════════════════
+function captureQueryState() {
+  return {
+    fromTable: S.fromTable,
+    joins: S.joins,
+    selCols: [...S.selCols],
+    colAliases: S.colAliases,
+    colAgg: S.colAgg,
+    groupBy: S.groupBy,
+    having: S.having,
+    wheres: S.wheres,
+    orderCol: S.orderCol, orderDir: S.orderDir,
+    limit: S.limit, distinct: S.distinct,
+    unionType: S.unionType, unionQuery: S.unionQuery,
+  };
+}
+
+function applyQueryState(qs) {
+  if (!qs) return;
+  const known = t => !!S.tables[t];
+  const unresolved = [];
+  if (qs.fromTable) {
+    if (known(qs.fromTable)) {
+      S.fromTable = qs.fromTable;
+      if (!S.nodes[qs.fromTable]) { S.nodes[qs.fromTable] = { x: 15, y: 15 }; restoreLayoutFor(qs.fromTable); }
+    } else unresolved.push(qs.fromTable);
+  }
+  (qs.joins || []).forEach((j, i) => {
+    if (known(j.rt)) {
+      if (!S.nodes[j.rt]) { S.nodes[j.rt] = { x: 15 + (i + 1) * 210, y: 15 }; restoreLayoutFor(j.rt); }
+      S.joins.push(j);
+    } else if (!unresolved.includes(j.rt)) unresolved.push(j.rt);
+  });
+  (qs.selCols || []).forEach(c => { const [t] = c.split('.'); if (known(t)) S.selCols.add(c); });
+  Object.entries(qs.colAliases || {}).forEach(([k, v]) => { const [t] = k.split('.'); if (known(t)) S.colAliases[k] = v; });
+  Object.entries(qs.colAgg || {}).forEach(([k, v]) => { const [t] = k.split('.'); if (known(t)) S.colAgg[k] = v; });
+  S.groupBy = (qs.groupBy || []).filter(g => !g || known(g.split('.')[0]));
+  S.having = (qs.having || []).filter(h => !h.col || known(h.col.split('.')[0]));
+  S.wheres = (qs.wheres || []).filter(w => !w.col || known(w.col.split('.')[0]));
+  S.orderCol = qs.orderCol && known(qs.orderCol.split('.')[0]) ? qs.orderCol : '';
+  S.orderDir = qs.orderDir || 'ASC';
+  S.limit = qs.limit || ''; S.distinct = !!qs.distinct;
+  S.unionType = qs.unionType || ''; S.unionQuery = qs.unionQuery || '';
+  document.getElementById('limitVal').value = S.limit;
+  document.getElementById('chkDist').checked = S.distinct;
+  document.getElementById('unionType').value = S.unionType;
+  document.getElementById('unionQuery').value = S.unionQuery;
+  document.getElementById('unionQuery').classList.toggle('hidden', !S.unionType);
+  renderCanvas(); renderSchema(); syncFromSel(); renderJoins(); renderColSel(); renderWheres(); renderGroupByList(); renderSQL();
+  return unresolved;
+}
+
+function saveQueryState() {
+  if (!Object.keys(S.tables).length) return;
+  try { localStorage.setItem('qc-query-' + schemaHash(), JSON.stringify(captureQueryState())); } catch (e) {}
+}
+
+function restoreQueryStateForSchema() {
+  try {
+    const raw = localStorage.getItem('qc-query-' + schemaHash());
+    if (raw) applyQueryState(JSON.parse(raw));
+  } catch (e) {}
+}
+
+let pendingSharedQuery = null;
+function applySharedOrSavedQueryState() {
+  if (pendingSharedQuery) {
+    const qs = pendingSharedQuery;
+    pendingSharedQuery = null;
+    const unresolved = applyQueryState(qs);
+    if (unresolved && unresolved.length) {
+      setMsg(document.getElementById('parseMsg'), `⚠ Shared query referenced table(s) not in this schema: ${unresolved.join(', ')}`, 'err');
+    } else {
+      toast('Shared query loaded');
+    }
+  } else {
+    restoreQueryStateForSchema();
+  }
+}
+
+function encodeShareState() {
+  return btoa(encodeURIComponent(JSON.stringify(captureQueryState())));
+}
+function decodeShareState(b64) {
+  try { return JSON.parse(decodeURIComponent(atob(b64))); } catch (e) { return null; }
+}
 
 function renderCanvas() { renderNodes(); renderLines(); }
 
@@ -750,25 +1109,95 @@ function renderNodes() {
     positionNode(el, tname);
     refreshCols(el, tname);
   }
+  renderMinimap();
 }
+
+// ══════════════════════════════════════════════════════
+// MINIMAP (F-015)
+// ══════════════════════════════════════════════════════
+const NODE_W = 190, NODE_H = 120, MM_W = 120, MM_H = 80;
+function renderMinimap() {
+  const svg = document.getElementById('minimap');
+  const names = Object.keys(S.nodes);
+  if (names.length < 2) { svg.classList.add('hidden'); return; }
+  svg.classList.remove('hidden');
+  svg.innerHTML = '';
+  const ns = 'http://www.w3.org/2000/svg';
+  const ar = canvasArea();
+  let minX = 0, minY = 0, maxX = ar.clientWidth, maxY = ar.clientHeight;
+  names.forEach(t => {
+    const p = S.nodes[t];
+    minX = Math.min(minX, p.x); minY = Math.min(minY, p.y);
+    maxX = Math.max(maxX, p.x + NODE_W); maxY = Math.max(maxY, p.y + NODE_H);
+  });
+  const w = Math.max(1, maxX - minX), h = Math.max(1, maxY - minY);
+  const sx = MM_W / w, sy = MM_H / h;
+  names.forEach(t => {
+    const p = S.nodes[t];
+    const r = document.createElementNS(ns, 'rect');
+    r.setAttribute('x', (p.x - minX) * sx); r.setAttribute('y', (p.y - minY) * sy);
+    r.setAttribute('width', Math.max(3, NODE_W * sx)); r.setAttribute('height', Math.max(3, NODE_H * sy));
+    r.setAttribute('rx', 1);
+    r.setAttribute('fill', t === S.fromTable ? '#4fffb0' : '#3d8fff');
+    r.setAttribute('opacity', '0.75');
+    svg.appendChild(r);
+  });
+  const vx = (-S.panX / S.zoom - minX) * sx, vy = (-S.panY / S.zoom - minY) * sy;
+  const vw = (ar.clientWidth / S.zoom) * sx, vh = (ar.clientHeight / S.zoom) * sy;
+  const vr = document.createElementNS(ns, 'rect');
+  vr.setAttribute('x', vx); vr.setAttribute('y', vy);
+  vr.setAttribute('width', vw); vr.setAttribute('height', vh);
+  vr.setAttribute('fill', 'none'); vr.setAttribute('stroke', '#f59e0b'); vr.setAttribute('stroke-width', '1.5');
+  svg.appendChild(vr);
+}
+
+function nodeMeta(tname) { return S.nodeMeta[tname] || (S.nodeMeta[tname] = { collapsed: false, color: null }); }
 
 function makeNode(tname) {
   const el = document.createElement('div');
   el.className = 'tnode'; el.id = 'nd-' + tname; el.dataset.t = tname;
+  el.tabIndex = 0;
+  el.setAttribute('role', 'group');
+  el.setAttribute('aria-label', `Table ${tname}. Use arrow keys to move, Delete to remove from canvas.`);
+  el.addEventListener('focus', () => selectNode(tname));
   const hdr = document.createElement('div');
   hdr.className = 'tnode-hdr';
-  hdr.innerHTML = `<span class="tnode-hdr-name" title="${tname}">📋 ${tname}</span><span class="tnode-x">✕</span>`;
+  hdr.innerHTML = `<span class="tnode-collapse" title="Collapse/expand" role="button" tabindex="0" aria-label="Collapse or expand ${tname}">▾</span><span class="tnode-hdr-name" title="${tname}">📋 ${tname}</span><span class="tnode-x" role="button" tabindex="0" aria-label="Remove ${tname} from canvas">✕</span>`;
   hdr.querySelector('.tnode-x').onclick = e => { e.stopPropagation(); removeNode(tname); };
+  hdr.querySelector('.tnode-x').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); removeNode(tname); } });
+  hdr.querySelector('.tnode-collapse').onclick = e => { e.stopPropagation(); toggleCollapse(tname); };
+  hdr.querySelector('.tnode-collapse').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); toggleCollapse(tname); } });
   hdr.addEventListener('mousedown', e => {
-    if (e.target.classList.contains('tnode-x')) return;
+    if (e.target.classList.contains('tnode-x') || e.target.classList.contains('tnode-collapse')) return;
     e.preventDefault();
     selectNode(tname);
+    pushUndoSnapshot();
     const r = el.getBoundingClientRect();
     dragging = { el, tname, ox: e.clientX - r.left, oy: e.clientY - r.top };
   });
+  hdr.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); selectNode(tname); showCtxMenu(e.clientX, e.clientY, 'node', tname); });
   el.appendChild(hdr);
   el.appendChild(document.createElement('div'));
+  applyNodeStyle(el, tname);
   return el;
+}
+
+function toggleCollapse(tname) {
+  const meta = nodeMeta(tname);
+  meta.collapsed = !meta.collapsed;
+  const el = nodeEl(tname);
+  if (el) applyNodeStyle(el, tname);
+  renderLines();
+}
+
+function applyNodeStyle(el, tname) {
+  const meta = nodeMeta(tname);
+  const wrap = el.children[1];
+  if (wrap) wrap.classList.toggle('hidden', meta.collapsed);
+  const collapseIcon = el.querySelector('.tnode-collapse');
+  if (collapseIcon) collapseIcon.textContent = meta.collapsed ? '▸' : '▾';
+  const hdr = el.querySelector('.tnode-hdr');
+  if (hdr) hdr.style.borderLeft = meta.color ? `3px solid ${meta.color}` : '';
 }
 
 function positionNode(el, tname) {
@@ -787,10 +1216,13 @@ function refreshCols(el, tname) {
     const row = document.createElement('div');
     row.className = 'tnode-col' + (S.selCols.has(key) ? ' selcol' : '');
     row.dataset.key = key;
-    row.innerHTML = `<div class="port" data-port="${key}"></div>
+    row.innerHTML = `<div class="port" data-port="${key}" role="img" aria-label="Join handle for ${key} — drag to another column to join, or use the Joins section's + Add button as a keyboard-friendly alternative"></div>
       ${col.pk ? '<span class="icon-pk">🔑</span>' : col.fk ? '<span class="icon-fk">→</span>' : ''}
       <span class="col-name" title="${col.name}">${col.name}</span>
       <span class="col-type">${col.type}</span>`;
+    row.setAttribute('role', 'checkbox');
+    row.setAttribute('aria-checked', S.selCols.has(key) ? 'true' : 'false');
+    row.setAttribute('aria-label', `${key} (${col.type}) — toggle in SELECT`);
     row.addEventListener('click', e => { if (e.target.classList.contains('port') || e.target.dataset.port) return; toggleCol(key, row); });
     row.querySelector('.port').addEventListener('mousedown', e => {
       e.preventDefault(); e.stopPropagation();
@@ -804,12 +1236,17 @@ function refreshCols(el, tname) {
 }
 
 function removeNode(tname) {
+  pushUndoSnapshot();
   delete S.nodes[tname];
   S.joins = S.joins.filter(j => j.lt !== tname && j.rt !== tname);
   S.selCols = new Set([...S.selCols].filter(k => !k.startsWith(tname + '.')));
+  Object.keys(S.colAliases).forEach(k => { if (k.startsWith(tname + '.')) delete S.colAliases[k]; });
+  Object.keys(S.colAgg).forEach(k => { if (k.startsWith(tname + '.')) delete S.colAgg[k]; });
+  S.groupBy = S.groupBy.filter(g => !g.startsWith(tname + '.'));
+  S.having = S.having.filter(h => !h.col || !h.col.startsWith(tname + '.'));
   if (S.fromTable === tname) S.fromTable = Object.keys(S.nodes)[0] || '';
   if (selectedNode === tname) selectedNode = null;
-  renderCanvas(); renderSchema(); renderJoins(); renderColSel(); syncFromSel(); renderSQL();
+  renderCanvas(); renderSchema(); renderJoins(); renderColSel(); syncFromSel(); renderGroupByList(); renderSQL();
 }
 
 function renderLines() {
@@ -818,6 +1255,11 @@ function renderLines() {
   for (const j of S.joins) {
     const p1 = portCenter(j.lt, j.lc), p2 = portCenter(j.rt, j.rc);
     if (p1 && p2) drawCurve(svg, ns, p1, p2, '#3d8fff', j.type);
+    (j.extra || []).forEach(ex => {
+      if (!ex.lc || !ex.rc) return;
+      const ep1 = portCenter(j.lt, ex.lc), ep2 = portCenter(j.rt, ex.rc);
+      if (ep1 && ep2) drawCurve(svg, ns, ep1, ep2, '#3d8fff', null);
+    });
   }
   if (joinDrag) drawCurve(svg, ns, { x: joinDrag.x1, y: joinDrag.y1 }, { x: joinDrag.x2, y: joinDrag.y2 }, 'rgba(79,255,176,.8)', null);
 }
@@ -876,6 +1318,7 @@ document.addEventListener('mousemove', e => {
 });
 
 document.addEventListener('mouseup', e => {
+  if (dragging) saveLayout();
   dragging = null; panning = null;
   if (joinDrag) {
     const target = document.elementFromPoint(e.clientX, e.clientY);
@@ -887,6 +1330,7 @@ document.addEventListener('mouseup', e => {
         if (toT !== joinDrag.ft) {
           const dup = S.joins.find(j => j.lt === joinDrag.ft && j.lc === joinDrag.fc && j.rt === toT && j.rc === toC);
           if (!dup) {
+            pushUndoSnapshot();
             S.joins.push({ type: 'INNER', lt: joinDrag.ft, lc: joinDrag.fc, rt: toT, rc: toC });
             if (!S.fromTable) { S.fromTable = joinDrag.ft; syncFromSel(); }
             renderJoins(); renderColSel(); renderSQL(); toast('Join added');
@@ -915,6 +1359,8 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     const modal = document.getElementById('sqlModal');
     if (!modal.classList.contains('hidden')) { modal.classList.add('hidden'); return; }
+    const subModal = document.getElementById('subqueryModal');
+    if (!subModal.classList.contains('hidden')) { subModal.classList.add('hidden'); return; }
   }
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runQuery(); return; }
   if (isEditableTarget(e.target)) return;
@@ -923,9 +1369,32 @@ document.addEventListener('keydown', e => {
     navigator.clipboard.writeText(buildSQL()).then(() => toast('Copied!'));
     return;
   }
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
+    e.preventDefault();
+    if (e.shiftKey) redoCanvas(); else undoCanvas();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) {
+    e.preventDefault();
+    redoCanvas();
+    return;
+  }
   if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNode) {
     e.preventDefault();
     removeNode(selectedNode);
+    return;
+  }
+  const arrowDeltas = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
+  if (selectedNode && S.nodes[selectedNode] && arrowDeltas[e.key]) {
+    e.preventDefault();
+    const step = e.shiftKey ? 40 : 10;
+    const [dx, dy] = arrowDeltas[e.key];
+    S.nodes[selectedNode].x = Math.max(0, S.nodes[selectedNode].x + dx * step);
+    S.nodes[selectedNode].y = Math.max(0, S.nodes[selectedNode].y + dy * step);
+    const el = nodeEl(selectedNode);
+    if (el) positionNode(el, selectedNode);
+    renderLines();
+    saveLayout();
   }
 });
 
@@ -933,15 +1402,77 @@ canvasArea().addEventListener('mousedown', e => {
   if (spaceDown || e.button === 1) panning = { sx: e.clientX - S.panX, sy: e.clientY - S.panY };
 });
 
+// ══════════════════════════════════════════════════════
+// RIGHT-CLICK CONTEXT MENU (F-016) + COLOR-CODED GROUPS (F-013)
+// ══════════════════════════════════════════════════════
+const NODE_COLORS = ['#4fffb0', '#3d8fff', '#ff6b6b', '#f59e0b', '#c792ea', '#f78c6c'];
+
+function hideCtxMenu() { document.getElementById('ctxMenu').classList.add('hidden'); }
+
+function showCtxMenu(x, y, kind, tname) {
+  const menu = document.getElementById('ctxMenu');
+  let items = [];
+  if (kind === 'node') {
+    const meta = nodeMeta(tname);
+    items.push({ label: meta.collapsed ? 'Expand' : 'Collapse', fn: () => toggleCollapse(tname) });
+    items.push({ label: 'Remove from canvas', fn: () => removeNode(tname) });
+  } else {
+    items.push({ label: '+ Add All to Canvas', fn: () => document.getElementById('btnAddAll').click() });
+    items.push({ label: 'Auto Layout', fn: () => document.getElementById('btnLayout').click() });
+    items.push({ label: 'Reset View', fn: () => document.getElementById('btnResetView').click() });
+  }
+  menu.innerHTML = items.map((it, i) => `<div class="ctx-item" data-i="${i}">${it.label}</div>`).join('');
+  if (kind === 'node') {
+    menu.innerHTML += `<div class="ctx-sep"></div><div style="padding:2px 9px;font-size:8px;color:var(--muted);text-transform:uppercase">Color</div>
+      <div class="ctx-colors">
+        ${NODE_COLORS.map(c => `<div class="ctx-color" data-color="${c}" style="background:${c}"></div>`).join('')}
+        <div class="ctx-color" data-color="" style="background:transparent;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted)">✕</div>
+      </div>`;
+  }
+  menu.querySelectorAll('.ctx-item').forEach((el, i) => el.onclick = () => { items[i].fn(); hideCtxMenu(); });
+  if (kind === 'node') {
+    menu.querySelectorAll('.ctx-color').forEach(el => el.onclick = () => {
+      nodeMeta(tname).color = el.dataset.color || null;
+      const nd = nodeEl(tname); if (nd) applyNodeStyle(nd, tname);
+      hideCtxMenu();
+    });
+  }
+  menu.style.left = x + 'px';
+  menu.style.top = y + 'px';
+  menu.classList.remove('hidden');
+}
+
+canvasArea().addEventListener('contextmenu', e => {
+  if (e.target.closest('.tnode')) return; // node's own handler deals with this
+  e.preventDefault();
+  showCtxMenu(e.clientX, e.clientY, 'canvas');
+});
+document.addEventListener('click', e => { if (!e.target.closest('#ctxMenu')) hideCtxMenu(); });
+
 document.getElementById('zIn').onclick = () => { S.zoom = Math.min(2, +(S.zoom + .1).toFixed(1)); applyZoom(); };
 document.getElementById('zOut').onclick = () => { S.zoom = Math.max(.3, +(S.zoom - .1).toFixed(1)); applyZoom(); };
 function applyZoom() { document.getElementById('zLbl').textContent = Math.round(S.zoom * 100) + '%'; renderNodes(); renderLines(); }
+
+// ══════════════════════════════════════════════════════
+// MOBILE TAB LAYOUT (F-028)
+// ══════════════════════════════════════════════════════
+document.querySelectorAll('.mobile-tabs button').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.mobile-tabs button').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('ws').className = 'ws mp-' + btn.dataset.mp;
+  };
+});
+
+document.getElementById('btnUndo').onclick = undoCanvas;
+document.getElementById('btnRedo').onclick = redoCanvas;
 
 document.getElementById('btnLayout').onclick = () => {
   const names = Object.keys(S.nodes);
   const cols = Math.ceil(Math.sqrt(names.length)) || 1;
   names.forEach((n, i) => { S.nodes[n] = { x: (i % cols) * 210 + 15, y: Math.floor(i / cols) * 270 + 15 }; });
   renderCanvas();
+  saveLayout();
 };
 document.getElementById('btnResetView').onclick = () => { S.panX = 0; S.panY = 0; S.zoom = 1; applyZoom(); renderNodes(); renderLines(); };
 
@@ -1006,17 +1537,20 @@ function renderSchema() {
 window.toggleCanvas = function (tname) {
   if (S.nodes[tname]) { removeNode(tname); }
   else {
+    pushUndoSnapshot();
     const n = Object.keys(S.nodes).length;
     S.nodes[tname] = { x: 15 + (n % 4) * 210, y: 15 + Math.floor(n / 4) * 270 };
+    restoreLayoutFor(tname);
     if (!S.fromTable) { S.fromTable = tname; }
     renderCanvas(); renderSchema(); renderColSel(); syncFromSel(); renderSQL();
   }
 };
 
 document.getElementById('btnAddAll').onclick = () => {
+  pushUndoSnapshot();
   const names = Object.keys(S.tables);
   names.forEach((t, i) => {
-    if (!S.nodes[t]) S.nodes[t] = { x: (i % 4) * 210 + 15, y: Math.floor(i / 4) * 270 + 15 };
+    if (!S.nodes[t]) { S.nodes[t] = { x: (i % 4) * 210 + 15, y: Math.floor(i / 4) * 270 + 15 }; restoreLayoutFor(t); }
   });
   if (!S.fromTable && names.length) S.fromTable = names[0];
   renderCanvas(); renderSchema(); renderColSel(); syncFromSel(); renderSQL();
@@ -1024,12 +1558,14 @@ document.getElementById('btnAddAll').onclick = () => {
 };
 
 document.getElementById('btnRemoveAll').onclick = () => {
+  pushUndoSnapshot();
   S.nodes = {}; S.joins = []; S.selCols.clear(); S.fromTable = '';
   renderCanvas(); renderSchema(); renderJoins(); renderColSel(); syncFromSel(); renderSQL();
 };
 
 window.addFKJoin = function (i) {
   const f = S.fks[i]; if (!f) return;
+  pushUndoSnapshot();
   if (!S.nodes[f.fromTable]) { const n = Object.keys(S.nodes).length; S.nodes[f.fromTable] = { x: 15 + (n % 4) * 210, y: 15 + Math.floor(n / 4) * 270 }; }
   if (!S.nodes[f.toTable]) { const n = Object.keys(S.nodes).length; S.nodes[f.toTable] = { x: 15 + (n % 4) * 210, y: 15 + Math.floor(n / 4) * 270 }; }
   const dup = S.joins.find(j => j.lt === f.fromTable && j.lc === f.fromCol && j.rt === f.toTable && j.rc === f.toCol);
@@ -1080,7 +1616,21 @@ function renderJoins() {
       ${(j.rt && S.tables[j.rt] ? S.tables[j.rt].map(c => j.rt + '.' + c.name) : allCols).map(c => `<option value="${c}"${c === j.rt + '.' + j.rc ? ' selected' : ''}>${c}</option>`).join('')}
     </select>
     <button class="btn xs dng" onclick="delJoin(${i})">✕</button>
-  </div>`).join('');
+  </div>
+  ${(j.extra || []).map((ex, xi) => `<div class="join-row" style="margin-left:14px">
+    <span class="kwd">AND</span>
+    <select class="si" style="max-width:110px" onchange="updJoinExtra(${i},${xi},'lc',this.value)">
+      <option value="">—col—</option>
+      ${(j.lt && S.tables[j.lt] ? S.tables[j.lt] : []).map(c => `<option value="${c.name}"${c.name === ex.lc ? ' selected' : ''}>${j.lt}.${c.name}</option>`).join('')}
+    </select>
+    <span class="kwd">=</span>
+    <select class="si" style="max-width:110px" onchange="updJoinExtra(${i},${xi},'rc',this.value)">
+      <option value="">—col—</option>
+      ${(j.rt && S.tables[j.rt] ? S.tables[j.rt] : []).map(c => `<option value="${c.name}"${c.name === ex.rc ? ' selected' : ''}>${j.rt}.${c.name}</option>`).join('')}
+    </select>
+    <button class="btn xs dng" onclick="delJoinExtra(${i},${xi})">✕</button>
+  </div>`).join('')}
+  ${j.lt && j.rt ? `<div style="margin-left:14px;margin-bottom:5px"><button class="btn xs" onclick="addJoinExtra(${i})">+ AND (composite key)</button></div>` : ''}`).join('');
 }
 
 window.updJoin = (i, k, v) => { S.joins[i][k] = v; renderJoins(); renderLines(); renderSQL(); };
@@ -1091,10 +1641,14 @@ window.updJoinOn = (i, side, val) => {
   else { S.joins[i].rt = t; S.joins[i].rc = c; }
   renderJoins(); renderLines(); renderSQL();
 };
-window.delJoin = i => { S.joins.splice(i, 1); renderJoins(); renderLines(); renderSQL(); };
+window.delJoin = i => { pushUndoSnapshot(); S.joins.splice(i, 1); renderJoins(); renderLines(); renderSQL(); };
+window.addJoinExtra = i => { S.joins[i].extra = S.joins[i].extra || []; S.joins[i].extra.push({ lc: '', rc: '' }); renderJoins(); };
+window.updJoinExtra = (i, xi, k, v) => { S.joins[i].extra[xi][k] = v; renderJoins(); renderSQL(); };
+window.delJoinExtra = (i, xi) => { S.joins[i].extra.splice(xi, 1); renderJoins(); renderSQL(); };
 
 document.getElementById('btnAddJoin').onclick = () => {
   if (!Object.keys(S.nodes).length) { toast('Add tables to canvas first'); return; }
+  pushUndoSnapshot();
   S.joins.push({ type: 'INNER', lt: '', lc: '', rt: '', rc: '' });
   renderJoins(); renderSQL();
 };
@@ -1110,12 +1664,19 @@ function renderColSel() {
     <div class="col-group-lbl">${t}</div>
     ${(S.tables[t] || []).map(c => {
     const key = `${t}.${c.name}`;
-    return `<label class="col-check">
-        <input type="checkbox"${S.selCols.has(key) ? ' checked' : ''} onchange="toggleColCB('${key}',this.checked)"/>
+    const checked = S.selCols.has(key);
+    return `<div style="display:flex;align-items:center;gap:5px">
+      <label class="col-check" style="flex:1">
+        <input type="checkbox"${checked ? ' checked' : ''} onchange="toggleColCB('${key}',this.checked)"/>
         <span>${c.name}</span>
         <span class="col-check-type">${c.type}</span>
         ${c.pk ? '<span class="icon-pk">🔑</span>' : ''}
-      </label>`;
+      </label>
+      ${checked ? `<select class="si agg-select" style="max-width:60px" onchange="updColAgg('${key}',this.value)">
+        ${['', 'COUNT', 'SUM', 'AVG', 'MIN', 'MAX'].map(f => `<option value="${f}"${(S.colAgg[key] || '') === f ? ' selected' : ''}>${f || 'no fn'}</option>`).join('')}
+      </select>` : ''}
+      ${checked ? `<input class="ti alias-input" style="max-width:70px" placeholder="alias" value="${S.colAliases[key] || ''}" oninput="updColAlias('${key}',this.value)"/>` : ''}
+      </div>`;
   }).join('')}
   </div>`).join('');
   updateOrderSel();
@@ -1127,32 +1688,71 @@ function updateOrderSel() {
   sel.innerHTML = '<option value="">— none —</option>' + getAllCols().map(c => `<option value="${c}"${c === cur ? ' selected' : ''}>${c}</option>`).join('');
 }
 
-window.toggleColCB = (key, checked) => {
-  if (checked) S.selCols.add(key); else S.selCols.delete(key);
-  const row = document.querySelector(`.tnode-col[data-key="${key}"]`);
-  if (row) row.classList.toggle('selcol', checked);
+window.updColAlias = (key, alias) => {
+  if (alias) S.colAliases[key] = alias; else delete S.colAliases[key];
   renderSQL();
 };
 
+window.updColAgg = (key, fn) => {
+  if (fn) S.colAgg[key] = fn; else delete S.colAgg[key];
+  renderSQL();
+};
+
+window.toggleColCB = (key, checked) => {
+  pushUndoSnapshot();
+  if (checked) S.selCols.add(key); else { S.selCols.delete(key); delete S.colAliases[key]; delete S.colAgg[key]; }
+  const row = document.querySelector(`.tnode-col[data-key="${key}"]`);
+  if (row) row.classList.toggle('selcol', checked);
+  renderColSel(); renderSQL();
+};
+
 function toggleCol(key, rowEl) {
+  pushUndoSnapshot();
   const checked = !S.selCols.has(key);
-  if (checked) S.selCols.add(key); else S.selCols.delete(key);
+  if (checked) S.selCols.add(key); else { S.selCols.delete(key); delete S.colAliases[key]; delete S.colAgg[key]; }
   if (rowEl) rowEl.classList.toggle('selcol', checked);
   const cb = document.querySelector(`input[onchange*="'${key}'"]`);
   if (cb) cb.checked = checked;
+  renderColSel();
   renderSQL();
 }
 
 document.getElementById('btnSelAll').onclick = () => { getAllCols().forEach(c => S.selCols.add(c)); renderColSel(); renderNodes(); renderSQL(); };
-document.getElementById('btnSelNone').onclick = () => { S.selCols.clear(); renderColSel(); renderNodes(); renderSQL(); };
+document.getElementById('btnSelNone').onclick = () => { S.selCols.clear(); S.colAliases = {}; renderColSel(); renderNodes(); renderSQL(); };
+
+function colTypeOf(key) {
+  if (!key || !key.includes('.')) return null;
+  const [t, c] = key.split('.');
+  const col = (S.tables[t] || []).find(x => x.name === c);
+  return col ? col.type : null;
+}
+
+function typeMismatchHint(w) {
+  if (['IN', 'NOT IN', 'IS NULL', 'IS NOT NULL', 'LIKE', 'NOT LIKE'].includes(w.op)) return '';
+  const type = colTypeOf(w.col);
+  if (!type) return '';
+  const isTextType = /CHAR|TEXT|CLOB/i.test(type);
+  const isNumType = /INT|REAL|FLOA|DOUB|NUMERIC|DECIMAL|SERIAL/i.test(type);
+  const vals = ['BETWEEN', 'NOT BETWEEN'].includes(w.op) ? [w.val, w.val2] : [w.val];
+  for (const v of vals) {
+    if (v === undefined || v === '') continue;
+    const looksNumeric = !isNaN(v);
+    if (isTextType && looksNumeric) return `⚠ ${w.col} is ${type} — comparing to a bare number may not match rows the way you expect`;
+    if (isNumType && !looksNumeric) return `⚠ ${w.col} is ${type} — "${v}" isn't numeric`;
+  }
+  return '';
+}
 
 function renderWheres() {
   const div = document.getElementById('whereList');
   if (!S.wheres.length) { div.innerHTML = '<div class="es">No conditions yet</div>'; return; }
   const cols = getAllCols();
   const ops = ['=', '!=', '<', '>', '<=', '>=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'IS NULL', 'IS NOT NULL'];
-  div.innerHTML = S.wheres.map((w, i) => `<div class="where-row">
+  div.innerHTML = S.wheres.map((w, i) => {
+    const hint = typeMismatchHint(w);
+    return `<div class="where-row">
     ${i > 0 ? `<select class="si" onchange="updW(${i},'logic',this.value)"><option${w.logic === 'AND' ? ' selected' : ''}>AND</option><option${w.logic === 'OR' ? ' selected' : ''}>OR</option></select>` : ''}
+    <button class="btn xs${w.open ? ' pri' : ''}" onclick="updW(${i},'open',${!w.open})" title="Toggle opening ( before this condition">(</button>
     <select class="si" onchange="updW(${i},'col',this.value)">
       <option value="">—col—</option>
       ${cols.map(c => `<option value="${c}"${c === w.col ? ' selected' : ''}>${c}</option>`).join('')}
@@ -1162,26 +1762,92 @@ function renderWheres() {
     </select>
     ${['BETWEEN', 'NOT BETWEEN'].includes(w.op)
       ? `<input class="ti" placeholder="low" value="${w.val || ''}" oninput="updW(${i},'val',this.value)"/><span class="kwd">AND</span><input class="ti" placeholder="high" value="${w.val2 || ''}" oninput="updW(${i},'val2',this.value)"/>`
+      : ['IN', 'NOT IN'].includes(w.op)
+      ? `<input class="ti" placeholder="1,2,3 or a subquery" value="${(w.val || '').replace(/"/g, '&quot;')}" oninput="updW(${i},'val',this.value)"/><button class="btn xs" onclick="openSubqueryModal(${i})" title="Edit as subquery">⌘</button>`
       : !['IS NULL', 'IS NOT NULL'].includes(w.op) ? `<input class="ti" placeholder="value" value="${w.val || ''}" oninput="updW(${i},'val',this.value)"/>` : ''}
+    <button class="btn xs${w.close ? ' pri' : ''}" onclick="updW(${i},'close',${!w.close})" title="Toggle closing ) after this condition">)</button>
     <button class="btn xs dng" onclick="delW(${i})">✕</button>
-  </div>`).join('');
+  </div>${hint ? `<div class="where-hint">${hint}</div>` : ''}`;
+  }).join('');
 }
 
 window.updW = (i, k, v) => { S.wheres[i][k] = v; renderWheres(); renderSQL(); };
 window.delW = i => { S.wheres.splice(i, 1); renderWheres(); renderSQL(); };
 document.getElementById('btnAddWhere').onclick = () => { S.wheres.push({ col: '', op: '=', val: '', logic: 'AND' }); renderWheres(); renderSQL(); };
 
+// ══════════════════════════════════════════════════════
+// GROUP BY / HAVING (F-006) + aggregate functions (F-007)
+// ══════════════════════════════════════════════════════
+function renderGroupByList() {
+  const div = document.getElementById('groupByList');
+  const cols = getAllCols();
+  if (!S.groupBy.length) { div.innerHTML = '<div class="es">No GROUP BY columns</div>'; renderHavingList(); return; }
+  div.innerHTML = S.groupBy.map((g, i) => `<div class="where-row">
+    <select class="si" style="flex:1" onchange="updGroupBy(${i},this.value)">
+      <option value="">—col—</option>
+      ${cols.map(c => `<option value="${c}"${c === g ? ' selected' : ''}>${c}</option>`).join('')}
+    </select>
+    <button class="btn xs dng" onclick="delGroupBy(${i})">✕</button>
+  </div>`).join('');
+  renderHavingList();
+}
+window.updGroupBy = (i, v) => { S.groupBy[i] = v; renderGroupByList(); renderSQL(); };
+window.delGroupBy = i => { S.groupBy.splice(i, 1); renderGroupByList(); renderSQL(); };
+document.getElementById('btnAddGroupBy').onclick = () => {
+  if (!Object.keys(S.nodes).length) { toast('Add tables to canvas first'); return; }
+  S.groupBy.push(''); renderGroupByList(); renderSQL();
+};
+
+const AGG_FNS = ['COUNT', 'SUM', 'AVG', 'MIN', 'MAX'];
+function renderHavingList() {
+  const div = document.getElementById('havingList');
+  const cols = getAllCols();
+  const ops = ['=', '!=', '<', '>', '<=', '>='];
+  if (!S.groupBy.filter(Boolean).length) { div.innerHTML = '<div class="es">Add a GROUP BY column first</div>'; return; }
+  if (!S.having.length) { div.innerHTML = '<div class="es">No HAVING conditions</div>'; return; }
+  div.innerHTML = S.having.map((h, i) => `<div class="where-row">
+    ${i > 0 ? `<select class="si" onchange="updHaving(${i},'logic',this.value)"><option${h.logic === 'AND' ? ' selected' : ''}>AND</option><option${h.logic === 'OR' ? ' selected' : ''}>OR</option></select>` : ''}
+    <select class="si" onchange="updHaving(${i},'aggFunc',this.value)">
+      <option value="">(none)</option>
+      ${AGG_FNS.map(f => `<option${f === h.aggFunc ? ' selected' : ''}>${f}</option>`).join('')}
+    </select>
+    <select class="si" onchange="updHaving(${i},'col',this.value)">
+      <option value="">—col—</option>
+      ${cols.map(c => `<option value="${c}"${c === h.col ? ' selected' : ''}>${c}</option>`).join('')}
+    </select>
+    <select class="si" onchange="updHaving(${i},'op',this.value)">
+      ${ops.map(o => `<option${o === h.op ? ' selected' : ''}>${o}</option>`).join('')}
+    </select>
+    <input class="ti" placeholder="value" value="${h.val || ''}" oninput="updHaving(${i},'val',this.value)"/>
+    <button class="btn xs dng" onclick="delHaving(${i})">✕</button>
+  </div>`).join('');
+}
+window.updHaving = (i, k, v) => { S.having[i][k] = v; renderHavingList(); renderSQL(); };
+window.delHaving = i => { S.having.splice(i, 1); renderHavingList(); renderSQL(); };
+document.getElementById('btnAddHaving').onclick = () => {
+  if (!S.groupBy.filter(Boolean).length) { toast('Add a GROUP BY column first'); return; }
+  S.having.push({ aggFunc: 'COUNT', col: '', op: '=', val: '', logic: 'AND' });
+  renderHavingList(); renderSQL();
+};
+
 document.getElementById('orderCol').onchange = e => { S.orderCol = e.target.value; renderSQL(); };
 document.getElementById('orderDir').onchange = e => { S.orderDir = e.target.value; renderSQL(); };
 document.getElementById('limitVal').oninput = e => { S.limit = e.target.value; renderSQL(); };
 document.getElementById('chkDist').onchange = e => { S.distinct = e.target.checked; renderSQL(); };
 
-function renderSQL() { document.getElementById('sqlOut').innerHTML = hl(buildSQL()); }
+document.getElementById('unionType').onchange = e => {
+  S.unionType = e.target.value;
+  document.getElementById('unionQuery').classList.toggle('hidden', !S.unionType);
+  renderSQL();
+};
+document.getElementById('unionQuery').oninput = e => { S.unionQuery = e.target.value; renderSQL(); };
+
+function renderSQL() { document.getElementById('sqlOut').innerHTML = hl(buildSQL()); saveQueryState(); }
 
 // ══════════════════════════════════════════════════════
 // TABS
 // ══════════════════════════════════════════════════════
-const tabMap = { sql: 'tSQL', results: 'tResults', seed: 'tSeed' };
+const tabMap = { sql: 'tSQL', results: 'tResults', seed: 'tSeed', history: 'tHistory' };
 document.querySelectorAll('.tab').forEach(btn => {
   btn.onclick = () => {
     document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
@@ -1206,7 +1872,7 @@ function runQuery() {
   const sql = buildSQL();
   if (sql.startsWith('--')) { toast('Build a query first'); return; }
   showTab('results');
-  const exportBtn = document.getElementById('btnExportCsv');
+  const exportBtn = document.getElementById('exportRow');
   try {
     const res = DB.exec(sql);
     document.getElementById('runMsg').innerHTML = S.dialect !== 'sqlite'
@@ -1216,21 +1882,164 @@ function runQuery() {
     if (!res.length) {
       area.innerHTML = '<div class="msg-ok">✓ Query ran — no rows returned.</div>';
       lastResult = null; exportBtn.classList.add('hidden');
+      logHistory(sql, 0, true);
       return;
     }
+    const { columns, values } = res[0];
+    const editTable = S.joins.length === 0 ? (S.fromTable || null) : null;
+    const pkCol = editTable && S.tables[editTable] ? (S.tables[editTable].find(c => c.pk) || {}).name : null;
+    const pkIdx = pkCol ? columns.indexOf(pkCol) : -1;
+    lastResult = { columns, values, editTable, pkCol: pkIdx >= 0 ? pkCol : null, pkIdx };
+    renderResultsTable();
+    exportBtn.classList.remove('hidden');
+    logHistory(sql, values.length, true);
+  } catch (e) {
+    document.getElementById('resultsArea').innerHTML = `<div class="msg-err">${e.message}</div>`;
+    lastResult = null; exportBtn.classList.add('hidden');
+    logHistory(sql, 0, false, e.message);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// EDITABLE RESULT CELLS (F-020, single-table queries only)
+// ══════════════════════════════════════════════════════
+function renderResultsTable() {
+  const area = document.getElementById('resultsArea');
+  if (!lastResult) return;
+  const { columns, values, editTable, pkCol, pkIdx } = lastResult;
+  const editable = !!(editTable && pkCol);
+  area.innerHTML = `<div class="res-wrap"><table>
+    <thead><tr>${columns.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+    <tbody>${values.map((r, ri) => `<tr>${r.map((v, ci) => {
+      const canEdit = editable && ci !== pkIdx;
+      const display = v === null ? '<span class="null-v">NULL</span>' : String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+      return `<td${canEdit ? ` class="editable-cell" data-row="${ri}" data-col="${ci}" title="Click to edit"` : ''}>${display}</td>`;
+    }).join('')}</tr>`).join('')}</tbody>
+  </table></div><div class="rc">${values.length} row${values.length !== 1 ? 's' : ''}${editable ? ' — click a cell to edit' : ''}</div>`;
+  if (editable) area.querySelectorAll('.editable-cell').forEach(td => { td.onclick = () => startCellEdit(td); });
+}
+
+function startCellEdit(td) {
+  if (td.querySelector('input')) return;
+  const ri = +td.dataset.row, ci = +td.dataset.col;
+  const currentVal = lastResult.values[ri][ci];
+  const input = document.createElement('input');
+  input.className = 'ti'; input.style.width = '100%';
+  input.value = currentVal === null ? '' : String(currentVal);
+  td.innerHTML = ''; td.appendChild(input); input.focus();
+  input.onblur = () => saveCellEdit(ri, ci, input.value);
+  input.onkeydown = e => {
+    if (e.key === 'Enter') input.blur();
+    if (e.key === 'Escape') renderResultsTable();
+  };
+}
+
+function saveCellEdit(ri, ci, newVal) {
+  const { editTable, pkCol, pkIdx, columns } = lastResult;
+  const pkVal = lastResult.values[ri][pkIdx];
+  const col = columns[ci];
+  const esc = v => String(v).replace(/'/g, "''");
+  const lit = v => (v === '' || v === null ? 'NULL' : (!isNaN(v) ? v : `'${esc(v)}'`));
+  const sql = `UPDATE ${q(editTable)} SET ${q(col)} = ${lit(newVal)} WHERE ${q(pkCol)} = ${lit(pkVal)}`;
+  try {
+    DB.run(sql);
+    lastResult.values[ri][ci] = newVal === '' ? null : newVal;
+    toast('Updated');
+  } catch (e) {
+    toast('Update failed: ' + e.message);
+  }
+  renderResultsTable();
+}
+
+document.getElementById('btnRunTop').onclick = runQuery;
+document.getElementById('btnRun2').onclick = runQuery;
+
+// ══════════════════════════════════════════════════════
+// QUERY HISTORY (F-019)
+// ══════════════════════════════════════════════════════
+const HISTORY_LIMIT = 20;
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('qc-history') || '[]'); } catch (e) { return []; }
+}
+function logHistory(sql, rowCount, ok, error) {
+  const hist = getHistory();
+  hist.unshift({ sql, rowCount, ok, error, ts: Date.now() });
+  hist.length = Math.min(hist.length, HISTORY_LIMIT);
+  try { localStorage.setItem('qc-history', JSON.stringify(hist)); } catch (e) {}
+  renderHistory();
+}
+function renderHistory() {
+  const div = document.getElementById('historyList');
+  const hist = getHistory();
+  if (!hist.length) { div.innerHTML = '<div class="es">No queries run yet</div>'; return; }
+  div.innerHTML = hist.map((h, i) => {
+    const when = new Date(h.ts).toLocaleTimeString();
+    const status = h.ok ? `${h.rowCount} row${h.rowCount !== 1 ? 's' : ''}` : `error: ${h.error}`;
+    return `<div class="where-row" style="flex-direction:column;align-items:stretch">
+      <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-bottom:3px">
+        <span>${when}</span><span class="${h.ok ? '' : 'msg-err'}" style="padding:0">${status}</span>
+      </div>
+      <div class="sql-out" style="margin:0 0 5px;max-height:80px;font-size:8px">${hl(h.sql)}</div>
+      <button class="btn xs" data-hist-run="${i}">▶ Re-run</button>
+    </div>`;
+  }).join('');
+  div.querySelectorAll('[data-hist-run]').forEach(btn => {
+    btn.onclick = () => runRawSQL(hist[+btn.dataset.histRun].sql);
+  });
+}
+function runRawSQL(sql) {
+  if (!DB) { toast('SQLite not ready yet'); return; }
+  showTab('results');
+  const exportBtn = document.getElementById('exportRow');
+  document.getElementById('runMsg').innerHTML = '';
+  const area = document.getElementById('resultsArea');
+  try {
+    const res = DB.exec(sql);
+    if (!res.length) { area.innerHTML = '<div class="msg-ok">✓ Query ran — no rows returned.</div>'; lastResult = null; exportBtn.classList.add('hidden'); logHistory(sql, 0, true); return; }
     const { columns, values } = res[0];
     area.innerHTML = `<div class="res-wrap"><table>
       <thead><tr>${columns.map(c => `<th>${c}</th>`).join('')}</tr></thead>
       <tbody>${values.map(r => `<tr>${r.map(v => `<td>${v === null ? '<span class="null-v">NULL</span>' : String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;')}</td>`).join('')}</tr>`).join('')}</tbody>
     </table></div><div class="rc">${values.length} row${values.length !== 1 ? 's' : ''}</div>`;
     lastResult = { columns, values }; exportBtn.classList.remove('hidden');
+    logHistory(sql, values.length, true);
   } catch (e) {
-    document.getElementById('resultsArea').innerHTML = `<div class="msg-err">${e.message}</div>`;
+    area.innerHTML = `<div class="msg-err">${e.message}</div>`;
     lastResult = null; exportBtn.classList.add('hidden');
+    logHistory(sql, 0, false, e.message);
   }
 }
-document.getElementById('btnRunTop').onclick = runQuery;
-document.getElementById('btnRun2').onclick = runQuery;
+document.getElementById('btnClearHistory').onclick = () => {
+  try { localStorage.removeItem('qc-history'); } catch (e) {}
+  renderHistory();
+  toast('History cleared');
+};
+renderHistory();
+
+// ══════════════════════════════════════════════════════
+// EXPLAIN QUERY PLAN (F-035)
+// ══════════════════════════════════════════════════════
+document.getElementById('btnExplain').onclick = () => {
+  if (!DB) { toast('SQLite not ready yet'); return; }
+  const sql = buildSQL();
+  if (sql.startsWith('--')) { toast('Build a query first'); return; }
+  showTab('results');
+  document.getElementById('runMsg').innerHTML = '';
+  document.getElementById('exportRow').classList.add('hidden');
+  lastResult = null;
+  const area = document.getElementById('resultsArea');
+  try {
+    const res = DB.exec('EXPLAIN QUERY PLAN ' + sql);
+    if (!res.length) { area.innerHTML = '<div class="msg-ok">✓ No plan returned.</div>'; return; }
+    const { columns, values } = res[0];
+    area.innerHTML = `<div class="sl">Query Plan</div><div class="res-wrap"><table>
+      <thead><tr>${columns.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+      <tbody>${values.map(r => `<tr>${r.map(v => `<td>${v === null ? '<span class="null-v">NULL</span>' : String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;')}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div>`;
+  } catch (e) {
+    area.innerHTML = `<div class="msg-err">${e.message}</div>`;
+  }
+};
 
 [document.getElementById('btnCopyTop'), document.getElementById('btnCopy2')].forEach(b => {
   b.onclick = () => navigator.clipboard.writeText(buildSQL()).then(() => toast('Copied!'));
@@ -1258,6 +2067,22 @@ document.getElementById('btnExportCsv').onclick = () => {
   a.remove();
   URL.revokeObjectURL(url);
   toast('CSV exported');
+};
+
+document.getElementById('btnExportJson').onclick = () => {
+  if (!lastResult) return;
+  const { columns, values } = lastResult;
+  const rows = values.map(r => Object.fromEntries(columns.map((c, i) => [c, r[i]])));
+  const blob = new Blob([JSON.stringify(rows, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `querycraft-results-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  toast('JSON exported');
 };
 
 // ══════════════════════════════════════════════════════
@@ -1330,17 +2155,139 @@ document.getElementById('btnParse').onclick = () => {
     setMsg(msg, hint, 'err');
     return;
   }
+  const prevTables = S.tables;
+  const hadPrevSchema = Object.keys(prevTables).length > 0;
   S.tables = tables; S.fks = fks; S.views = views;
   setMsg(msg, `✓ ${n} table(s), ${fks.length} FK(s), ${views.length} view(s) loaded`, 'ok');
   renderSchema(); toast(`Loaded ${n} tables`);
+  applySharedOrSavedQueryState();
+  if (hadPrevSchema) renderSchemaDiff(computeSchemaDiff(prevTables, tables));
+  else document.getElementById('schemaDiffMsg').innerHTML = '';
 };
 
+// ══════════════════════════════════════════════════════
+// SCHEMA DIFF ON RE-IMPORT (F-002)
+// ══════════════════════════════════════════════════════
+function computeSchemaDiff(oldTables, newTables) {
+  const oldNames = Object.keys(oldTables), newNames = Object.keys(newTables);
+  const addedTables = newNames.filter(t => !oldTables[t]);
+  const removedTables = oldNames.filter(t => !newTables[t]);
+  const changedTables = {};
+  newNames.filter(t => oldTables[t]).forEach(t => {
+    const oldCols = new Set(oldTables[t].map(c => c.name));
+    const newCols = new Set(newTables[t].map(c => c.name));
+    const addedCols = [...newCols].filter(c => !oldCols.has(c));
+    const removedCols = [...oldCols].filter(c => !newCols.has(c));
+    if (addedCols.length || removedCols.length) changedTables[t] = { addedCols, removedCols };
+  });
+  return { addedTables, removedTables, changedTables };
+}
+
+function renderSchemaDiff(diff) {
+  const div = document.getElementById('schemaDiffMsg');
+  const lines = [];
+  if (diff.addedTables.length) lines.push(`+ new table(s): ${diff.addedTables.join(', ')}`);
+  if (diff.removedTables.length) lines.push(`− dropped table(s): ${diff.removedTables.join(', ')}`);
+  Object.entries(diff.changedTables).forEach(([t, c]) => {
+    const parts = [];
+    if (c.addedCols.length) parts.push(`+${c.addedCols.join(', +')}`);
+    if (c.removedCols.length) parts.push(`−${c.removedCols.join(', −')}`);
+    lines.push(`~ ${t}: ${parts.join(', ')}`);
+  });
+  div.innerHTML = lines.length
+    ? `<div class="msg-info">Schema changes since last parse:<br>${lines.map(l => l.replace(/&/g,'&amp;').replace(/</g,'&lt;')).join('<br>')}</div>`
+    : `<div class="msg-ok">No schema changes since last parse.</div>`;
+}
+
 document.getElementById('btnClearSchema').onclick = () => {
-  Object.assign(S, { tables: {}, fks: [], views: [], nodes: {}, joins: [], selCols: new Set(), wheres: [], fromTable: '', orderCol: '', limit: '' });
+  Object.assign(S, { tables: {}, fks: [], views: [], nodes: {}, joins: [], selCols: new Set(), colAliases: {}, colAgg: {}, groupBy: [], having: [], wheres: [], unionType: '', unionQuery: '', fromTable: '', orderCol: '', limit: '' });
+  undoStack = []; redoStack = [];
+  document.getElementById('unionType').value = '';
+  document.getElementById('unionQuery').value = '';
+  document.getElementById('unionQuery').classList.add('hidden');
   const dbo = document.getElementById('debugOut'); if(dbo){dbo.innerHTML='';dbo.style.display='none';}
   document.getElementById('ddlIn').value = '';
   document.getElementById('parseMsg').innerHTML = '';
-  renderSchema(); renderCanvas(); renderJoins(); renderColSel(); syncFromSel(); renderWheres(); renderSQL();
+  document.getElementById('schemaDiffMsg').innerHTML = '';
+  renderSchema(); renderCanvas(); renderJoins(); renderColSel(); syncFromSel(); renderWheres(); renderGroupByList(); renderSQL();
+};
+
+// ══════════════════════════════════════════════════════
+// UPLOAD .sql FILE (F-005) / EXPORT SCHEMA JSON (F-001)
+// ══════════════════════════════════════════════════════
+document.getElementById('btnUploadSql').onclick = () => document.getElementById('sqlFileInput').click();
+document.getElementById('sqlFileInput').onchange = async () => {
+  const file = document.getElementById('sqlFileInput').files[0];
+  if (!file) return;
+  document.getElementById('ddlIn').value = await file.text();
+  document.getElementById('btnParse').click();
+};
+
+document.getElementById('btnExportSchemaJson').onclick = () => {
+  if (!Object.keys(S.tables).length) { toast('Parse a schema first'); return; }
+  const payload = { tables: S.tables, fks: S.fks, views: S.views };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'querycraft-schema.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast('Schema exported');
+};
+
+// ══════════════════════════════════════════════════════
+// NAMED SAVED SCHEMAS (F-034)
+// ══════════════════════════════════════════════════════
+function getSavedSchemas() {
+  try { return JSON.parse(localStorage.getItem('qc-schemas') || '{}'); } catch (e) { return {}; }
+}
+function setSavedSchemas(obj) {
+  try { localStorage.setItem('qc-schemas', JSON.stringify(obj)); } catch (e) {}
+}
+function renderSavedSchemaSel() {
+  const sel = document.getElementById('savedSchemaSel');
+  const names = Object.keys(getSavedSchemas());
+  sel.innerHTML = names.length
+    ? names.map(n => `<option value="${n}">${n}</option>`).join('')
+    : '<option value="">— none saved —</option>';
+}
+renderSavedSchemaSel();
+
+document.getElementById('btnSaveSchema').onclick = () => {
+  const nameInput = document.getElementById('saveSchemaName');
+  const name = nameInput.value.trim();
+  if (!name) { toast('Enter a name first'); return; }
+  if (!Object.keys(S.tables).length) { toast('Parse a schema first'); return; }
+  const schemas = getSavedSchemas();
+  schemas[name] = { tables: S.tables, fks: S.fks, views: S.views };
+  setSavedSchemas(schemas);
+  renderSavedSchemaSel();
+  document.getElementById('savedSchemaSel').value = name;
+  nameInput.value = '';
+  toast(`Saved schema "${name}"`);
+};
+
+document.getElementById('btnLoadSchema').onclick = () => {
+  const name = document.getElementById('savedSchemaSel').value;
+  if (!name) { toast('No saved schema selected'); return; }
+  const schemas = getSavedSchemas();
+  const entry = schemas[name];
+  if (!entry) return;
+  S.tables = entry.tables; S.fks = entry.fks; S.views = entry.views;
+  renderSchema();
+  setMsg(document.getElementById('parseMsg'), `✓ Loaded saved schema "${name}"`, 'ok');
+  toast(`Loaded "${name}"`);
+  applySharedOrSavedQueryState();
+};
+
+document.getElementById('btnDeleteSchema').onclick = () => {
+  const name = document.getElementById('savedSchemaSel').value;
+  if (!name) { toast('No saved schema selected'); return; }
+  const schemas = getSavedSchemas();
+  delete schemas[name];
+  setSavedSchemas(schemas);
+  renderSavedSchemaSel();
+  toast(`Deleted "${name}"`);
 };
 
 // ══════════════════════════════════════════════════════
@@ -1452,6 +2399,7 @@ async function loadDbFile(file) {
     const n = Object.keys(tables).length;
     setMsg(msg, `✓ Loaded "${file.name}" — ${n} table(s), ${fks.length} FK(s), ${views.length} view(s)`, 'ok');
     toast(`Loaded ${file.name}`);
+    applySharedOrSavedQueryState();
   } catch (e) {
     setMsg(msg, `⚠ Could not load file: ${e.message}`, 'err');
   }
@@ -1472,8 +2420,62 @@ dbDropZone.addEventListener('drop', e => {
 // ══════════════════════════════════════════════════════
 // PARSE SQL MODAL
 // ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// THEME TOGGLE (F-026)
+// ══════════════════════════════════════════════════════
+function applyTheme(theme) {
+  document.body.classList.toggle('light', theme === 'light');
+  document.getElementById('btnTheme').textContent = theme === 'light' ? '☀' : '🌙';
+}
+let savedTheme = 'dark';
+try { savedTheme = localStorage.getItem('qc-theme') || 'dark'; } catch (e) {}
+applyTheme(savedTheme);
+document.getElementById('btnTheme').onclick = () => {
+  const next = document.body.classList.contains('light') ? 'dark' : 'light';
+  applyTheme(next);
+  try { localStorage.setItem('qc-theme', next); } catch (e) {}
+};
+
+// ══════════════════════════════════════════════════════
+// SHARE QUERY VIA URL (F-030)
+// ══════════════════════════════════════════════════════
+(function readSharedQueryFromUrl() {
+  const m = location.hash.match(/[#&]q=([^&]+)/);
+  if (!m) return;
+  const qs = decodeShareState(m[1]);
+  if (qs) pendingSharedQuery = qs;
+  if (Object.keys(S.tables).length) applySharedOrSavedQueryState();
+})();
+
+document.getElementById('btnShareUrl').onclick = () => {
+  if (!Object.keys(S.tables).length) { toast('Build a query first'); return; }
+  const url = location.origin + location.pathname + '#q=' + encodeShareState();
+  navigator.clipboard.writeText(url).then(() => toast('Share link copied!')).catch(() => {
+    history.replaceState(null, '', '#q=' + encodeShareState());
+    toast('Share link set in address bar');
+  });
+};
+
 document.getElementById('btnPasteSQL').onclick = () => document.getElementById('sqlModal').classList.remove('hidden');
 document.getElementById('btnModalClose').onclick = () => document.getElementById('sqlModal').classList.add('hidden');
+
+// ══════════════════════════════════════════════════════
+// SUBQUERY EDITOR MODAL (F-008)
+// ══════════════════════════════════════════════════════
+let subqueryWhereIndex = null;
+window.openSubqueryModal = i => {
+  subqueryWhereIndex = i;
+  document.getElementById('subqueryText').value = S.wheres[i].val || '';
+  document.getElementById('subqueryModal').classList.remove('hidden');
+};
+document.getElementById('btnSubqueryClose').onclick = () => document.getElementById('subqueryModal').classList.add('hidden');
+document.getElementById('btnSubqueryOk').onclick = () => {
+  if (subqueryWhereIndex === null) return;
+  S.wheres[subqueryWhereIndex].val = document.getElementById('subqueryText').value.trim();
+  document.getElementById('subqueryModal').classList.add('hidden');
+  renderWheres(); renderSQL();
+  toast('Subquery applied');
+};
 document.getElementById('btnParseSQLOk').onclick = () => {
   const sql = document.getElementById('sqlPaste').value.trim();
   const msg = document.getElementById('sqlParseMsg');
@@ -1490,9 +2492,19 @@ document.getElementById('btnParseSQLOk').onclick = () => {
   S.orderCol = p.orderCol; S.orderDir = p.orderDir; S.limit = p.limit; S.distinct = p.distinct;
   document.getElementById('limitVal').value = S.limit;
   document.getElementById('chkDist').checked = S.distinct;
-  renderCanvas(); renderSchema(); syncFromSel(); renderJoins(); renderColSel(); renderWheres(); renderSQL();
+  renderCanvas(); renderSchema(); syncFromSel(); renderJoins(); renderColSel(); renderWheres(); renderGroupByList(); renderSQL();
   document.getElementById('sqlModal').classList.add('hidden');
-  toast('SQL parsed & visualized!');
+
+  const unresolved = [];
+  if (p.fromTable && !S.tables[p.fromTable]) unresolved.push(p.fromTable);
+  p.joins.forEach(j => { if (j.rt && !S.tables[j.rt] && !unresolved.includes(j.rt)) unresolved.push(j.rt); });
+  if (unresolved.length) {
+    setMsg(document.getElementById('parseMsg'),
+      `⚠ Alias(es)/table(s) not in the loaded schema, so they couldn't be placed on canvas: ${unresolved.join(', ')}. Load/parse a matching schema first for full visualization.`, 'err');
+    toast('SQL parsed — some tables unresolved');
+  } else {
+    toast('SQL parsed & visualized!');
+  }
   setTimeout(() => document.getElementById('btnLayout').click(), 80);
 };
 
