@@ -692,10 +692,12 @@ function buildSQL() {
       const [t, c] = w.col.split('.');
       let vp;
       const esc = v => String(v).replace(/'/g, "''");
+      const lit = v => { const num = !isNaN(v) && v !== ''; return num ? v : "'" + esc(v) + "'"; };
       if (['IS NULL', 'IS NOT NULL'].includes(w.op)) vp = w.op;
       else if (['IN', 'NOT IN'].includes(w.op)) vp = `${w.op} (${w.val})`;
+      else if (['BETWEEN', 'NOT BETWEEN'].includes(w.op)) vp = `${w.op} ${lit(w.val)} AND ${lit(w.val2)}`;
       else if (w.op === 'LIKE' || w.op === 'NOT LIKE') vp = `${w.op} '${esc(w.val)}'`;
-      else { const num = !isNaN(w.val) && w.val !== ''; vp = `${w.op} ${num ? w.val : "'" + esc(w.val) + "'"}`; }
+      else vp = `${w.op} ${lit(w.val)}`;
       lines.push(`${pre}${q(t)}.${q(c)} ${vp}`);
     });
   }
@@ -726,7 +728,14 @@ const canvasArea = () => document.getElementById('canvasArea');
 const cSvg = () => document.getElementById('cSvg');
 const cTbls = () => document.getElementById('cTables');
 
-let dragging = null, joinDrag = null, panning = null, spaceDown = false;
+let dragging = null, joinDrag = null, panning = null, spaceDown = false, selectedNode = null;
+
+function selectNode(tname) {
+  if (selectedNode) { const prev = nodeEl(selectedNode); if (prev) prev.classList.remove('sel'); }
+  selectedNode = tname;
+  const el = nodeEl(tname);
+  if (el) el.classList.add('sel');
+}
 
 function nodeEl(t) { return document.getElementById('nd-' + t); }
 
@@ -753,6 +762,7 @@ function makeNode(tname) {
   hdr.addEventListener('mousedown', e => {
     if (e.target.classList.contains('tnode-x')) return;
     e.preventDefault();
+    selectNode(tname);
     const r = el.getBoundingClientRect();
     dragging = { el, tname, ox: e.clientX - r.left, oy: e.clientY - r.top };
   });
@@ -798,6 +808,7 @@ function removeNode(tname) {
   S.joins = S.joins.filter(j => j.lt !== tname && j.rt !== tname);
   S.selCols = new Set([...S.selCols].filter(k => !k.startsWith(tname + '.')));
   if (S.fromTable === tname) S.fromTable = Object.keys(S.nodes)[0] || '';
+  if (selectedNode === tname) selectedNode = null;
   renderCanvas(); renderSchema(); renderJoins(); renderColSel(); syncFromSel(); renderSQL();
 }
 
@@ -890,8 +901,33 @@ document.addEventListener('mouseup', e => {
   }
 });
 
-document.addEventListener('keydown', e => { if (e.code === 'Space') { spaceDown = true; e.preventDefault(); } });
+function isEditableTarget(el) {
+  return el && (['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName) || el.isContentEditable);
+}
+
+document.addEventListener('keydown', e => { if (e.code === 'Space' && !isEditableTarget(e.target)) { spaceDown = true; e.preventDefault(); } });
 document.addEventListener('keyup', e => { if (e.code === 'Space') spaceDown = false; });
+
+// ══════════════════════════════════════════════════════
+// KEYBOARD SHORTCUTS (F-025)
+// ══════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('sqlModal');
+    if (!modal.classList.contains('hidden')) { modal.classList.add('hidden'); return; }
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runQuery(); return; }
+  if (isEditableTarget(e.target)) return;
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C') && !window.getSelection().toString()) {
+    e.preventDefault();
+    navigator.clipboard.writeText(buildSQL()).then(() => toast('Copied!'));
+    return;
+  }
+  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNode) {
+    e.preventDefault();
+    removeNode(selectedNode);
+  }
+});
 
 canvasArea().addEventListener('mousedown', e => {
   if (spaceDown || e.button === 1) panning = { sx: e.clientX - S.panX, sy: e.clientY - S.panY };
@@ -1114,7 +1150,7 @@ function renderWheres() {
   const div = document.getElementById('whereList');
   if (!S.wheres.length) { div.innerHTML = '<div class="es">No conditions yet</div>'; return; }
   const cols = getAllCols();
-  const ops = ['=', '!=', '<', '>', '<=', '>=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'];
+  const ops = ['=', '!=', '<', '>', '<=', '>=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'IS NULL', 'IS NOT NULL'];
   div.innerHTML = S.wheres.map((w, i) => `<div class="where-row">
     ${i > 0 ? `<select class="si" onchange="updW(${i},'logic',this.value)"><option${w.logic === 'AND' ? ' selected' : ''}>AND</option><option${w.logic === 'OR' ? ' selected' : ''}>OR</option></select>` : ''}
     <select class="si" onchange="updW(${i},'col',this.value)">
@@ -1124,7 +1160,9 @@ function renderWheres() {
     <select class="si" onchange="updW(${i},'op',this.value)">
       ${ops.map(o => `<option${o === w.op ? ' selected' : ''}>${o}</option>`).join('')}
     </select>
-    ${!['IS NULL', 'IS NOT NULL'].includes(w.op) ? `<input class="ti" placeholder="value" value="${w.val || ''}" oninput="updW(${i},'val',this.value)"/>` : ''}
+    ${['BETWEEN', 'NOT BETWEEN'].includes(w.op)
+      ? `<input class="ti" placeholder="low" value="${w.val || ''}" oninput="updW(${i},'val',this.value)"/><span class="kwd">AND</span><input class="ti" placeholder="high" value="${w.val2 || ''}" oninput="updW(${i},'val2',this.value)"/>`
+      : !['IS NULL', 'IS NOT NULL'].includes(w.op) ? `<input class="ti" placeholder="value" value="${w.val || ''}" oninput="updW(${i},'val',this.value)"/>` : ''}
     <button class="btn xs dng" onclick="delW(${i})">✕</button>
   </div>`).join('');
 }

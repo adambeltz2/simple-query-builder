@@ -88,8 +88,9 @@ Allow combining two query builders with UNION. Complex UI — low priority.
 **F-011 — Multiple WHERE condition groups** 🟡  
 Currently all WHERE conditions are in a flat list with AND/OR between them. Support grouped conditions: `(A AND B) OR (C AND D)`.
 
-**F-031 — Add `BETWEEN` operator to WHERE builder** 🟡  
-**Added 2026-08-26.** The WHERE operator list (`=, !=, <, >, <=, >=, LIKE, NOT LIKE, IN, NOT IN, IS NULL, IS NOT NULL`) is missing `BETWEEN`/`NOT BETWEEN`, a very common condition. Needs a two-value input (low/high) instead of the single `value` field the other operators use.
+**F-031 — Add `BETWEEN` operator to WHERE builder** ✅ Fixed  
+**Added 2026-08-26.** The WHERE operator list (`=, !=, <, >, <=, >=, LIKE, NOT LIKE, IN, NOT IN, IS NULL, IS NOT NULL`) is missing `BETWEEN`/`NOT BETWEEN`, a very common condition. Needs a two-value input (low/high) instead of the single `value` field the other operators use.  
+*Update 2026-09-11:* Done — `BETWEEN`/`NOT BETWEEN` added to the operator list; selecting either renders two inputs (low/high) instead of one, stored as `w.val`/`w.val2`, and `buildSQL()` emits `col BETWEEN low AND high` with the same numeric-vs-quoted-and-escaped literal handling as other operators. Covered by `tests/where-between.spec.js`.
 
 **F-033 — Composite (multi-column) join keys** 🟡  
 **Added 2026-09-08.** A join is currently a single `{lt, lc, rt, rc}` column pair. Schemas with composite keys need `ON a.x = b.x AND a.y = b.y`. Extend the join model to hold multiple column pairs per join and render/parse the `AND`-joined `ON` clause accordingly.
@@ -149,8 +150,9 @@ The reverse parser maps aliases to table names, but if a schema hasn't been load
 
 ### UX / Polish
 
-**F-025 — Keyboard shortcuts** 🟡  
-`Ctrl+Enter` to run query, `Ctrl+C` to copy SQL, `Escape` to close modal, `Delete` to remove selected canvas node.
+**F-025 — Keyboard shortcuts** ✅ Fixed  
+`Ctrl+Enter` to run query, `Ctrl+C` to copy SQL, `Escape` to close modal, `Delete` to remove selected canvas node.  
+*Update 2026-09-11:* Done — all four shortcuts added. Clicking a canvas node's header now also selects it (`.tnode.sel` highlight, pre-existing CSS that had no JS wiring), so `Delete`/`Backspace` has something to act on. `Ctrl/Cmd+C` only copies the generated SQL when focus isn't in an editable field and no other text is selected, so it doesn't hijack normal copy behavior elsewhere in the app. Fixed a related latent bug while adding this: the existing Space-to-pan handler ran on every keydown globally, including while typing in the DDL/seed textareas, which would have silently swallowed literal space characters — both handlers now skip editable targets. Covered by `tests/keyboard-shortcuts.spec.js`.
 
 **F-026 — Dark/light mode toggle** 🟢  
 Currently hard-coded dark. Add a toggle and persist preference.
@@ -177,8 +179,9 @@ Encode the current query state in the URL hash so it can be shared as a link.
 
 ## 🏗 Infrastructure
 
-**I-001 — GitHub Actions deploy to Pages** 🟡  
-Add a `.github/workflows/deploy.yml` that auto-publishes `index.html` to GitHub Pages on every push to `main`.
+**I-001 — GitHub Actions deploy to Pages** ✅ Fixed  
+Add a `.github/workflows/deploy.yml` that auto-publishes `index.html` to GitHub Pages on every push to `main`.  
+*Update 2026-09-11:* Done — `.github/workflows/deploy.yml` copies `index.html` alone into a `_site` directory (keeping `tests/`, `test/`, `node_modules`, etc. out of the published site) and deploys it via `actions/upload-pages-artifact` + `actions/deploy-pages` on every push to `main` that touches `index.html`, plus manual `workflow_dispatch`. **One-time manual step still needed:** a repo admin must set Settings → Pages → Source to "GitHub Actions" before this workflow can deploy — that setting isn't changeable via this session's access.
 
 **I-002 — Test fixture: sample_schema.sql** ✅ Fixed  
 Add `test/sample_schema.sql` containing the sqlite_master INSERT output used for manual testing. Needed for reproducible bug reports.  
@@ -216,3 +219,6 @@ A simple Node.js or Playwright script that loads `index.html`, pastes the sample
 | I-002 | Test fixture `test/sample_schema.sql` (also regression-tests B-001 + B-004) | — |
 | F-017 | Export query results as CSV | — |
 | F-021 | Load an existing `.sqlite`/`.db` file via drag-and-drop or file picker | — |
+| I-001 | GitHub Actions workflow to deploy `index.html` to GitHub Pages | — |
+| F-031 | Added `BETWEEN`/`NOT BETWEEN` to the WHERE builder | — |
+| F-025 | Keyboard shortcuts (Ctrl+Enter run, Ctrl+C copy, Escape close modal, Delete removes selected canvas node) | — |
