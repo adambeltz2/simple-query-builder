@@ -2,9 +2,11 @@
 
 A browser-native visual SQL query builder. No backend, no build step, no dependencies to install. Drop `index.html` anywhere and open it.
 
-[![GitHub Pages](https://img.shields.io/badge/hosted-GitHub%20Pages-blue)](https://your-username.github.io/querycraft)
-![Version](https://img.shields.io/badge/version-0.4.4-green)
+[![GitHub Pages](https://img.shields.io/badge/hosted-GitHub%20Pages-blue)](https://adambeltz2.github.io/simple-query-builder/)
+![Version](https://img.shields.io/badge/version-0.5.0-green)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
+
+**Live app:** [adambeltz2.github.io/simple-query-builder](https://adambeltz2.github.io/simple-query-builder/)
 
 ---
 
@@ -64,10 +66,12 @@ Dark theme by default, with a light-mode toggle. The three-panel layout collapse
 ## Getting Started
 
 ### Option A — GitHub Pages (recommended)
-1. Fork or clone this repo
-2. Go to **Settings → Pages**
-3. Set source to the `main` branch, root folder
-4. Your app is live at `https://your-username.github.io/querycraft`
+The hosted app is live at **https://adambeltz2.github.io/simple-query-builder/** — a [GitHub Actions workflow](.github/workflows/deploy.yml) auto-deploys `index.html` on every push to `main`.
+
+To host your own fork:
+1. Fork this repo
+2. Go to **Settings → Pages** and set Source to **GitHub Actions**
+3. Push to `main` (or run the "Deploy to GitHub Pages" workflow manually) — your app will be live at `https://your-username.github.io/simple-query-builder/`
 
 ### Option B — Local file
 Download `index.html` and open it directly in any modern browser. Works offline except for the sql.js CDN load (one-time network request on first open; after that it's cached).

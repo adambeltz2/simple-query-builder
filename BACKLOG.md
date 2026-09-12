@@ -2,7 +2,7 @@
 
 Items are grouped by category. Priority is indicated as 🔴 High / 🟡 Medium / 🟢 Low.
 
-All tracked bugs and features are resolved. One infrastructure item (I-004) is open: GitHub Pages deployment is blocked on a manual repo-settings step. New items should still be filed here as they're discovered.
+All tracked bugs, features, and infrastructure items are resolved. The live app is at https://adambeltz2.github.io/simple-query-builder/. New items should still be filed here as they're discovered.
 
 ---
 
@@ -54,8 +54,10 @@ None open — all 32 tracked features are implemented. See the Completed table b
 
 ## 🏗 Infrastructure
 
-### I-004 — GitHub Pages deployment failing: Pages not enabled on the repo 🔴
-**Added 2026-09-12.** Both runs of the `Deploy to GitHub Pages` workflow (from PR #7 and PR #8 merging to `main`) have failed with the same error:
+None open.
+
+### I-004 — GitHub Pages deployment failing: Pages not enabled on the repo ✅ Fixed
+**Added 2026-09-12.** Both runs of the `Deploy to GitHub Pages` workflow (from PR #7 and PR #8 merging to `main`) failed with the same error:
 
 ```
 ##[error]Creating Pages deployment failed
@@ -64,15 +66,12 @@ None open — all 32 tracked features are implemented. See the Completed table b
 Ensure GitHub Pages has been enabled: https://github.com/adambeltz2/simple-query-builder/settings/pages
 ```
 
-The workflow itself (added in I-001) is correct — `actions/deploy-pages` can't create a deployment because the repository has never had GitHub Pages turned on. **This requires a repo admin, in the GitHub UI (no API/CLI access available to fix this from a Claude Code session):**
-1. Go to `https://github.com/adambeltz2/simple-query-builder/settings/pages`
-2. Under "Build and deployment" → "Source", select **"GitHub Actions"** (not "Deploy from a branch")
-3. Re-run the failed workflow (or push any change to `index.html`) to trigger a fresh deployment
+The workflow itself (added in I-001) was correct — `actions/deploy-pages` couldn't create a deployment because the repository had never had GitHub Pages turned on.
 
-Once enabled, no further code changes are needed — the existing workflow will deploy on the next qualifying push.
+**Fix (2026-09-12):** repo owner enabled Settings → Pages → Source → "GitHub Actions". Re-ran the workflow manually (`workflow_dispatch`) and it deployed successfully — [run 3](https://github.com/adambeltz2/simple-query-builder/actions/runs/34714214193). The app is now live at **https://adambeltz2.github.io/simple-query-builder/**.
 
-### I-001 — GitHub Actions deploy to Pages ✅ Workflow implemented — deployment blocked, see I-004
-**Fix (2026-09-11):** `.github/workflows/deploy.yml` copies `index.html` alone into a `_site` directory (keeping `tests/`, `test/`, `node_modules`, etc. out of the published site) and deploys it via `actions/upload-pages-artifact` + `actions/deploy-pages` on every push to `main` that touches `index.html`, plus manual `workflow_dispatch`. The workflow is correct but cannot succeed until Pages is enabled on the repo — see I-004.
+### I-001 — GitHub Actions deploy to Pages ✅ Fixed
+**Fix (2026-09-11):** `.github/workflows/deploy.yml` copies `index.html` alone into a `_site` directory (keeping `tests/`, `test/`, `node_modules`, etc. out of the published site) and deploys it via `actions/upload-pages-artifact` + `actions/deploy-pages` on every push to `main` that touches `index.html`, plus manual `workflow_dispatch`. Live and deploying successfully as of I-004.
 
 ### I-002 — Test fixture: sample_schema.sql ✅ Fixed
 **Fix (2026-09-11):** `test/sample_schema.sql` — realistic `INSERT INTO sqlite_master VALUES(...)` output for 3 tables + an index + a view, including the unquoted `rootpage` column (B-004) and an escaped-quote `DEFAULT`/`CHECK` (B-001). Covered by `tests/fixture-schema.spec.js`.
@@ -107,7 +106,8 @@ Once enabled, no further code changes are needed — the existing workflow will 
 | I-002 | Test fixture `test/sample_schema.sql` | `tests/fixture-schema.spec.js` |
 | F-017 | Export query results as CSV | `tests/export-csv.spec.js` |
 | F-021 | Load an existing `.sqlite`/`.db` file | `tests/load-db-file.spec.js` |
-| I-001 | GitHub Actions deploy to Pages (workflow only — see I-004 for live deployment) | — (manual verification only) |
+| I-001 | GitHub Actions deploy to Pages | — (manual verification only) |
+| I-004 | GitHub Pages enabled on the repo — site is live | — (manual verification only) |
 | F-031 | `BETWEEN`/`NOT BETWEEN` WHERE operator | `tests/where-between.spec.js` |
 | F-025 | Keyboard shortcuts (Run/Copy/Escape/Delete) | `tests/keyboard-shortcuts.spec.js` |
 | F-001 | Export parsed schema as JSON | `tests/export-import-schema.spec.js` |
