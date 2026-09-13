@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>QueryCraft</title>
+<title>SimpleQuery</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 :root{
@@ -198,7 +198,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
 <body>
 <div class="app">
 <div class="topbar">
-  <div class="logo">Query<span>Craft</span></div>
+  <div class="logo">Simple<span>Query</span></div>
   <div class="vsep"></div>
   <div class="dtoggle" id="dtoggle">
     <button class="dbtn on" data-d="sqlite">SQLite</button>
@@ -482,7 +482,7 @@ Use '↙ Parse SQL' in topbar for SELECT queries."></textarea>
 <div class="toast" id="toast"></div>
 <div class="ctx-menu hidden" id="ctxMenu"></div>
 <div id="ver-bar" style="position:fixed;bottom:0;left:0;right:0;height:20px;background:#0a0c10;border-top:1px solid #1e2230;display:flex;align-items:center;justify-content:space-between;padding:0 12px;z-index:50;pointer-events:none">
-  <span style="font-family:JetBrains Mono,monospace;font-size:9px;color:#3a3f55">QueryCraft</span>
+  <span style="font-family:JetBrains Mono,monospace;font-size:9px;color:#3a3f55">SimpleQuery</span>
   <span style="font-family:JetBrains Mono,monospace;font-size:9px;color:#3a3f55" id="verStr"></span>
   <span style="font-family:JetBrains Mono,monospace;font-size:9px;color:#3a3f55">MIT <div class="toast" id="toast"></div>copy; 2025</span>
 </div>
@@ -492,8 +492,8 @@ Use '↙ Parse SQL' in topbar for SELECT queries."></textarea>
 // ══════════════════════════════════════════════════════
 // VERSION
 // ══════════════════════════════════════════════════════
-const APP_VERSION = "0.5.0";
-const BUILD_DATE  = "2026-09-11";
+const APP_VERSION = "0.5.1";
+const BUILD_DATE  = "2026-09-13";
 
 
 // ══════════════════════════════════════════════════════
@@ -572,7 +572,7 @@ function extractFromSqliteMaster(raw) {
       if (/^CREATE\s+/i.test(sql)) results.push(sql);
     }
   }
-  console.log('[QueryCraft] extractFromSqliteMaster raw length:', raw.length, 'rowRe matches:', (raw.match(/\(\s*'(?:table|view|index|trigger)'/gi)||[]).length);
+  console.log('[SimpleQuery] extractFromSqliteMaster raw length:', raw.length, 'rowRe matches:', (raw.match(/\(\s*'(?:table|view|index|trigger)'/gi)||[]).length);
   return results;
 }
 
@@ -2061,7 +2061,7 @@ document.getElementById('btnExportCsv').onclick = () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `querycraft-results-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.csv`;
+  a.download = `simplequery-results-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.csv`;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -2077,7 +2077,7 @@ document.getElementById('btnExportJson').onclick = () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `querycraft-results-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.json`;
+  a.download = `simplequery-results-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.json`;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -2229,7 +2229,7 @@ document.getElementById('btnExportSchemaJson').onclick = () => {
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'querycraft-schema.json';
+  a.href = url; a.download = 'simplequery-schema.json';
   document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
   toast('Schema exported');

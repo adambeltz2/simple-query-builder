@@ -1,4 +1,4 @@
-# QueryCraft — Backlog
+# SimpleQuery — Backlog
 
 Items are grouped by category. Priority is indicated as 🔴 High / 🟡 Medium / 🟢 Low.
 

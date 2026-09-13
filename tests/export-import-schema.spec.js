@@ -34,7 +34,7 @@ test.describe('Export parsed schema as JSON (F-001)', () => {
       page.waitForEvent('download'),
       page.click('#btnExportSchemaJson'),
     ]);
-    expect(download.suggestedFilename()).toBe('querycraft-schema.json');
+    expect(download.suggestedFilename()).toBe('simplequery-schema.json');
     const fs = require('fs');
     const content = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
     expect(Object.keys(content.tables)).toContain('customers');
@@ -74,6 +74,6 @@ test.describe('Export results as JSON (F-018)', () => {
       page.waitForEvent('download'),
       page.click('#btnExportJson'),
     ]);
-    expect(download.suggestedFilename()).toMatch(/^querycraft-results-.*\.json$/);
+    expect(download.suggestedFilename()).toMatch(/^simplequery-results-.*\.json$/);
   });
 });
