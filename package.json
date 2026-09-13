@@ -1,8 +1,8 @@
 {
-  "name": "querycraft",
+  "name": "simplequery",
   "version": "1.0.0",
   "private": true,
-  "description": "Test tooling for QueryCraft (dev-only; the shipped app remains a dependency-free index.html)",
+  "description": "Test tooling for SimpleQuery (dev-only; the shipped app remains a dependency-free index.html)",
   "scripts": {
     "test": "playwright test"
   },

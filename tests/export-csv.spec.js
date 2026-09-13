@@ -91,7 +91,7 @@ test.describe('Export results as CSV (F-017)', () => {
       page.waitForEvent('download'),
       page.click('#btnExportCsv'),
     ]);
-    expect(download.suggestedFilename()).toMatch(/^querycraft-results-.*\.csv$/);
+    expect(download.suggestedFilename()).toMatch(/^simplequery-results-.*\.csv$/);
     const csvPath = await download.path();
     const content = fs.readFileSync(csvPath, 'utf8');
     expect(content.split('\r\n')[0]).toBe('id,name,email,city,created_at');

@@ -1,8 +1,15 @@
 # Changelog
 
-All notable changes to QueryCraft are documented here.  
+All notable changes to SimpleQuery are documented here.  
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).  
 Versioning follows [Semantic Versioning](https://semver.org/) from `0.x.y`.
+
+---
+
+## [0.5.1] — 2026-09-13
+
+### Changed
+- Renamed the app from **QueryCraft** to **SimpleQuery**, matching the `simple-*` naming convention used for this repo. Updated the page title, topbar logo, version footer, downloaded-file names (`simplequery-schema.json`, `simplequery-results-*.csv/json`), and all references in `README.md`, `CHANGELOG.md`, `BACKLOG.md`, and `package.json`. No functional changes.
 
 ---
 

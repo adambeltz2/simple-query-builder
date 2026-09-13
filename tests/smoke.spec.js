@@ -4,7 +4,7 @@ const { test, expect } = require('@playwright/test');
 test.describe('Core smoke path', () => {
   test('loads with an empty schema', async ({ page }) => {
     await page.goto('/index.html');
-    await expect(page).toHaveTitle('QueryCraft');
+    await expect(page).toHaveTitle('SimpleQuery');
     await expect(page.locator('#tblBadge')).toHaveText('0');
   });
 
