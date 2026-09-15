@@ -3,8 +3,9 @@
 A browser-native visual SQL query builder. No backend, no build step, no dependencies to install. Drop `index.html` anywhere and open it.
 
 [![GitHub Pages](https://img.shields.io/badge/hosted-GitHub%20Pages-blue)](https://adambeltz2.github.io/simple-query-builder/)
-![Version](https://img.shields.io/badge/version-0.5.1-green)
+![Version](https://img.shields.io/badge/version-0.5.2-green)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-ffdd00?logo=buymeacoffee&logoColor=black)](https://www.buymeacoffee.com/adambeltz)
 
 **Live app:** [adambeltz2.github.io/simple-query-builder](https://adambeltz2.github.io/simple-query-builder/)
 

@@ -6,6 +6,16 @@ Versioning follows [Semantic Versioning](https://semver.org/) from `0.x.y`.
 
 ---
 
+## [0.5.2] — 2026-09-15
+
+### Added
+- Buy Me A Coffee link in the app footer and a matching badge in `README.md` (https://www.buymeacoffee.com/adambeltz).
+
+### Fixed
+- The footer's copyright line was rendering as `MIT <toast div>copy; 2025` instead of `MIT © 2025` — a stray duplicate `<div id="toast">` had been left in place of a `&copy;` entity, also creating a duplicate `id="toast"` in the page. Removed the stray element and restored the proper `&copy;` entity.
+
+---
+
 ## [0.5.1] — 2026-09-13
 
 ### Changed
