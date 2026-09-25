@@ -6,6 +6,22 @@ Versioning follows [Semantic Versioning](https://semver.org/) from `0.x.y`.
 
 ---
 
+## [0.6.0] — 2026-09-25
+
+### Changed — UI decluttering pass
+The app packs 40+ features into three fixed-width columns at 8-9px font, all rendered at once — reported as feeling cluttered. This release applies progressive disclosure and a spacing/type pass without removing any functionality:
+- **Advanced query clauses collapsed by default**: `Having` and `Union` (the least-used clauses per BACKLOG's own scope notes) now live in a collapsed `<details>` "Advanced" accordion in the builder column, one click away instead of always taking up scroll space.
+- **Schema-panel tools collapsed by default**: the `Get schema` command generator, Upload/Export JSON, Saved schemas, and the debug log now live in a collapsed "Schema tools" accordion, leaving the primary DDL-paste-and-parse flow as the only thing shown up front.
+- **Larger base type scale**: bumped body/UI font sizes roughly 1-2px across buttons, labels, table/column lists, the SQL/results panes, and form controls — the biggest single contributor to the "dense" feel was 8-9px text everywhere, not feature count.
+- **More breathing room**: increased panel padding, row/section gaps, and canvas default height (265px → 340px) so the visual canvas — the centerpiece of the tool — isn't dwarfed by the builder form beneath it.
+- Widened the left/right side panels slightly (240px → 270px, 300px → 320px) to reduce text wrapping at the larger font size.
+- Fixed the on-canvas minimap intercepting clicks on table nodes underneath it (it's a passive overview, never interactive) — `pointer-events:none`. This was a latent bug that the panel-width change made easy to trigger.
+
+### Testing
+Added `tests/ui-declutter.spec.js` asserting the two new accordions are collapsed by default, expand on click, and that core builder sections (From/Joins/Columns/Where) stay visible without any expansion. Updated `tests/export-import-schema.spec.js`, `tests/group-by-having-aggregates.spec.js`, `tests/persistence-layout-schema-query-share.spec.js`, `tests/schema-command.spec.js`, and `tests/union.spec.js` to open the relevant accordion before interacting with controls that moved inside one. Full suite (74 tests) passes.
+
+---
+
 ## [0.5.2] — 2026-09-15
 
 ### Added

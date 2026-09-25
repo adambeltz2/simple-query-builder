@@ -8,7 +8,8 @@ All tracked bugs, features, and infrastructure items are resolved. The live app 
 
 ## 🐛 Active Bugs
 
-None open.
+### B-009 — Debug panel `<div>` has a duplicate `id` attribute
+`index.html`, the schema-tools debug output element has both `id="debugPanel"` and a second `id="debugOut"` on the same tag. HTML parsers keep only the first, so `document.getElementById('debugOut')` (used by `parseDDLInput`'s `dbg()` helper) always returns `null` and the on-page debug log silently never renders, even though `console.log` still fires. Not fixed here since it's unrelated to the UI-clutter pass that touched this element; pick one id and use it consistently in both the markup and the `dbg()` lookup.
 
 ### B-001 — sqlite_master format: parseDDL returns 0 tables ✅ Fixed in v0.4.4
 **Root cause:** `extractFromSqliteMaster` double-unescaped the sql column — `extractQuotedValues` already converts every `''` to `'` while extracting, so the extra `.replace(/''/g, "'")` afterward corrupted any statement with a decoded `''` (e.g. `DEFAULT ''`, a `CHECK (... GLOB '...')`) into an unterminated string, which desynced `splitStmts`' quote-tracking for every statement after it in the same combined paste. This is why real-world pastes reported "104 statements extracted, 0 tables parsed" — the first table with any `''`-containing default/CHECK poisoned everything downstream of it.

@@ -32,6 +32,7 @@ test.describe('Named saved schemas (F-034)', () => {
     await page.goto('/index.html');
     await page.click('#btnSample');
     await page.click('#btnParse');
+    await page.click('#discSchemaTools summary');
     await page.fill('#saveSchemaName', 'my-test-schema');
     await page.click('#btnSaveSchema');
 

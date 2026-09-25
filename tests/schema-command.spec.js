@@ -27,6 +27,7 @@ test.describe('Schema extraction sample command (per dialect)', () => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.goto('/index.html');
     await page.click('[data-d="postgres"]');
+    await page.click('#discSchemaTools summary');
     await page.click('#btnCopySchemaCmd');
     const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
     expect(clipboardText).toContain('pg_dump');
