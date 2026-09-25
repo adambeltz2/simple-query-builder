@@ -10,6 +10,7 @@ test.describe('UNION / UNION ALL (F-010)', () => {
     await page.selectOption('#fromSel', 'customers');
 
     await expect(page.locator('#unionQuery')).toBeHidden();
+    await page.click('#discAdvanced summary');
     await page.selectOption('#unionType', 'UNION ALL');
     await expect(page.locator('#unionQuery')).toBeVisible();
     await page.fill('#unionQuery', 'SELECT id, name FROM products;');
@@ -27,6 +28,7 @@ test.describe('UNION / UNION ALL (F-010)', () => {
     await page.click('#btnParse');
     await page.click('#btnAddAll');
     await page.selectOption('#fromSel', 'customers');
+    await page.click('#discAdvanced summary');
     await page.selectOption('#unionType', 'UNION');
     await page.fill('#unionQuery', 'SELECT id, name FROM products');
     await page.selectOption('#unionType', '');

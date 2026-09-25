@@ -29,6 +29,7 @@ test.describe('Export parsed schema as JSON (F-001)', () => {
     await page.goto('/index.html');
     await page.click('#btnSample');
     await page.click('#btnParse');
+    await page.click('#discSchemaTools summary');
 
     const [download] = await Promise.all([
       page.waitForEvent('download'),

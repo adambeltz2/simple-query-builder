@@ -29,6 +29,7 @@ test.describe('GROUP BY / HAVING (F-006)', () => {
     const gbRow = page.locator('#groupByList .where-row').first();
     await gbRow.locator('select').selectOption('orders.status');
 
+    await page.click('#discAdvanced summary');
     await page.click('#btnAddHaving');
     const havingRow = page.locator('#havingList .where-row').first();
     await havingRow.locator('select').nth(0).selectOption('COUNT');
