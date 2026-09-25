@@ -255,6 +255,7 @@ Use '↙ Parse SQL' in topbar for SELECT queries."></textarea>
       <button class="btn sm" id="btnSample">Sample</button>
       <button class="btn sm dng" id="btnClearSchema">Clear</button>
     </div>
+    <button class="btn sm blue" id="btnGenDdl" style="width:100%;margin-top:6px;justify-content:center">✨ Generate a schema for me</button>
     <div id="parseMsg"></div>
     <div id="schemaDiffMsg" style="margin-top:6px"></div>
 
@@ -490,6 +491,40 @@ Use '↙ Parse SQL' in topbar for SELECT queries."></textarea>
   </div>
 </div>
 
+<div class="modal-ov hidden" id="genDdlModal">
+  <div class="modal">
+    <h3>✨ Generate a schema</h3>
+    <p style="font-size:10px;color:var(--muted);margin-bottom:10px">Pick a starting point and get a ready-made multi-table DDL — with primary keys, foreign keys, and realistic columns — dropped straight into the canvas. No DDL of your own needed.</p>
+
+    <div class="sl">Domain</div>
+    <select class="si" id="genDomain" style="width:100%;margin-bottom:10px">
+      <option value="ecommerce">E-commerce (customers, orders, products)</option>
+      <option value="blog">Blog / CMS (authors, posts, comments, tags)</option>
+      <option value="project">Project tracker (teams, projects, tasks)</option>
+      <option value="library">Library catalog (books, authors, members, loans)</option>
+      <option value="saas">SaaS accounts (organizations, users, subscriptions)</option>
+      <option value="custom">Custom topic — generic chain of N tables</option>
+    </select>
+
+    <div id="genCustomRow" class="hidden" style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <span class="kwd" style="flex-shrink:0">Topic name</span>
+      <input class="ti" id="genTopic" placeholder="e.g. inventory, fitness, events"/>
+      <span class="kwd" style="flex-shrink:0">Tables</span>
+      <input type="number" class="ni" id="genTableCount" value="5" min="3" max="8"/>
+    </div>
+
+    <label class="col-check" style="margin-bottom:12px">
+      <input type="checkbox" id="genAutoPopulate" checked/>
+      <span>Parse it and add all tables to the canvas right away</span>
+    </label>
+
+    <div class="row">
+      <button class="btn pri" id="btnGenDdlOk">Generate</button>
+      <button class="btn" id="btnGenDdlClose">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-ov hidden" id="subqueryModal">
   <div class="modal">
     <h3>Subquery editor</h3>
@@ -516,7 +551,7 @@ Use '↙ Parse SQL' in topbar for SELECT queries."></textarea>
 // ══════════════════════════════════════════════════════
 // VERSION
 // ══════════════════════════════════════════════════════
-const APP_VERSION = "0.6.0";
+const APP_VERSION = "0.7.0";
 const BUILD_DATE  = "2026-09-25";
 
 
@@ -1385,6 +1420,8 @@ document.addEventListener('keydown', e => {
     if (!modal.classList.contains('hidden')) { modal.classList.add('hidden'); return; }
     const subModal = document.getElementById('subqueryModal');
     if (!subModal.classList.contains('hidden')) { subModal.classList.add('hidden'); return; }
+    const genModal = document.getElementById('genDdlModal');
+    if (!genModal.classList.contains('hidden')) { genModal.classList.add('hidden'); return; }
   }
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runQuery(); return; }
   if (isEditableTarget(e.target)) return;
@@ -2378,6 +2415,253 @@ INSERT INTO order_items VALUES(3,3,1,2,299.99);
 INSERT INTO order_items VALUES(4,4,3,1,89.00);`;
 
   document.getElementById('btnParse').click();
+};
+
+// ══════════════════════════════════════════════════════
+// GENERATE A SCHEMA — helper to populate the canvas without
+// the user having to write or find any DDL of their own
+// ══════════════════════════════════════════════════════
+const GEN_DDL_TEMPLATES = {
+  ecommerce: () => `CREATE TABLE customers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT,
+  city TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE products (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  category TEXT,
+  price REAL,
+  stock INTEGER
+);
+CREATE TABLE orders (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  customer_id INTEGER NOT NULL,
+  status TEXT,
+  order_date TEXT,
+  CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
+);
+CREATE TABLE order_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  order_id INTEGER NOT NULL,
+  product_id INTEGER NOT NULL,
+  qty INTEGER,
+  unit_price REAL,
+  CONSTRAINT fk_oi_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  CONSTRAINT fk_oi_product FOREIGN KEY (product_id) REFERENCES products(id)
+);
+CREATE INDEX idx_orders_customer ON orders(customer_id);`,
+
+  blog: () => `CREATE TABLE authors (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT,
+  bio TEXT,
+  joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE posts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  author_id INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  body TEXT,
+  status TEXT,
+  published_at TIMESTAMP,
+  CONSTRAINT fk_posts_author FOREIGN KEY (author_id) REFERENCES authors(id) ON DELETE CASCADE
+);
+CREATE TABLE tags (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL
+);
+CREATE TABLE post_tags (
+  post_id INTEGER NOT NULL,
+  tag_id INTEGER NOT NULL,
+  CONSTRAINT fk_pt_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  CONSTRAINT fk_pt_tag FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+);
+CREATE TABLE comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_id INTEGER NOT NULL,
+  author_name TEXT,
+  body TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_comments_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+);
+CREATE INDEX idx_posts_author ON posts(author_id);
+CREATE INDEX idx_comments_post ON comments(post_id);`,
+
+  project: () => `CREATE TABLE teams (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  team_id INTEGER,
+  name TEXT NOT NULL,
+  email TEXT,
+  role TEXT,
+  CONSTRAINT fk_users_team FOREIGN KEY (team_id) REFERENCES teams(id)
+);
+CREATE TABLE projects (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  team_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  status TEXT,
+  due_date TEXT,
+  CONSTRAINT fk_projects_team FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
+);
+CREATE TABLE tasks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL,
+  assignee_id INTEGER,
+  title TEXT NOT NULL,
+  status TEXT,
+  priority TEXT,
+  due_date TEXT,
+  CONSTRAINT fk_tasks_project FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  CONSTRAINT fk_tasks_assignee FOREIGN KEY (assignee_id) REFERENCES users(id)
+);
+CREATE TABLE task_comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  task_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  body TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_tc_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+  CONSTRAINT fk_tc_user FOREIGN KEY (user_id) REFERENCES users(id)
+);
+CREATE INDEX idx_tasks_project ON tasks(project_id);`,
+
+  library: () => `CREATE TABLE authors (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  country TEXT
+);
+CREATE TABLE books (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  author_id INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  isbn TEXT,
+  published_year INTEGER,
+  copies_available INTEGER,
+  CONSTRAINT fk_books_author FOREIGN KEY (author_id) REFERENCES authors(id)
+);
+CREATE TABLE members (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT,
+  joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE loans (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  book_id INTEGER NOT NULL,
+  member_id INTEGER NOT NULL,
+  loaned_at TEXT,
+  due_at TEXT,
+  returned_at TEXT,
+  CONSTRAINT fk_loans_book FOREIGN KEY (book_id) REFERENCES books(id),
+  CONSTRAINT fk_loans_member FOREIGN KEY (member_id) REFERENCES members(id)
+);
+CREATE INDEX idx_loans_book ON loans(book_id);
+CREATE INDEX idx_loans_member ON loans(member_id);`,
+
+  saas: () => `CREATE TABLE organizations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  plan TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  org_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  email TEXT,
+  role TEXT,
+  CONSTRAINT fk_users_org FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE
+);
+CREATE TABLE subscriptions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  org_id INTEGER NOT NULL,
+  plan TEXT,
+  status TEXT,
+  started_at TEXT,
+  renews_at TEXT,
+  CONSTRAINT fk_subs_org FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE
+);
+CREATE TABLE invoices (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  subscription_id INTEGER NOT NULL,
+  amount REAL,
+  status TEXT,
+  issued_at TEXT,
+  paid_at TEXT,
+  CONSTRAINT fk_invoices_sub FOREIGN KEY (subscription_id) REFERENCES subscriptions(id) ON DELETE CASCADE
+);
+CREATE INDEX idx_users_org ON users(org_id);
+CREATE INDEX idx_subs_org ON subscriptions(org_id);`,
+};
+
+// Generic fallback for a "custom" topic: a plausible chain of N tables,
+// each referencing the one before it, named off the user's topic word.
+function genCustomChainDDL(topic, count) {
+  const slug = (topic || 'entity').trim().toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'entity';
+  const n = Math.max(3, Math.min(8, parseInt(count, 10) || 5));
+  const nounPool = ['categories', 'items', 'groups', 'members', 'events', 'records', 'notes', 'entries'];
+  const names = Array.from({ length: n }, (_, i) => `${slug}_${nounPool[i % nounPool.length]}`);
+
+  const stmts = names.map((tname, i) => {
+    if (i === 0) {
+      return `CREATE TABLE ${tname} (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`;
+    }
+    const parent = names[i - 1];
+    const parentCol = `${parent.replace(/s$/, '')}_id`;
+    return `CREATE TABLE ${tname} (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ${parentCol} INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  status TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_${tname}_${parentCol} FOREIGN KEY (${parentCol}) REFERENCES ${parent}(id) ON DELETE CASCADE
+);`;
+  });
+  return stmts.join('\n');
+}
+
+function buildGeneratedDDL() {
+  const domain = document.getElementById('genDomain').value;
+  if (domain === 'custom') {
+    return genCustomChainDDL(document.getElementById('genTopic').value, document.getElementById('genTableCount').value);
+  }
+  const tpl = GEN_DDL_TEMPLATES[domain];
+  return tpl ? tpl() : GEN_DDL_TEMPLATES.ecommerce();
+}
+
+document.getElementById('btnGenDdl').onclick = () => document.getElementById('genDdlModal').classList.remove('hidden');
+document.getElementById('btnGenDdlClose').onclick = () => document.getElementById('genDdlModal').classList.add('hidden');
+document.getElementById('genDomain').onchange = () => {
+  document.getElementById('genCustomRow').classList.toggle('hidden', document.getElementById('genDomain').value !== 'custom');
+};
+
+document.getElementById('btnGenDdlOk').onclick = () => {
+  const ddl = buildGeneratedDDL();
+  document.getElementById('ddlIn').value = ddl;
+  document.getElementById('genDdlModal').classList.add('hidden');
+
+  if (document.getElementById('genAutoPopulate').checked) {
+    document.getElementById('btnParse').click();
+    document.getElementById('btnAddAll').click();
+    toast('Generated schema parsed and added to canvas');
+  } else {
+    toast('Generated DDL loaded — click Parse when ready');
+  }
 };
 
 // ══════════════════════════════════════════════════════

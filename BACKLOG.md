@@ -41,7 +41,10 @@ Fixed by clearing the placeholder so there's nothing stale to show before the re
 
 ## 🚀 Features
 
-None open — all 32 tracked features are implemented. See the Completed table below for what each one does and which test covers it.
+None open — all 32 tracked features plus F-038 below are implemented. See the Completed table below for what each one does and which test covers it.
+
+### F-038 — "Generate a schema for me" DDL helper ✅ Added in v0.7.0
+A user with no DDL of their own had no way to get a populated canvas short of clicking the fixed `Sample` button. Added a `✨ Generate a schema for me` button that opens a modal offering 5 domain-template presets (e-commerce, blog, project tracker, library, SaaS) or a "custom topic" option that procedurally builds a chain of 3-8 generically-named, FK-linked tables from any topic word the user types. Generated DDL runs through the same parse path as hand-pasted DDL, and by default is auto-parsed and added to canvas in one click. Covered by `tests/generate-schema.spec.js`.
 
 ### Notes on scope for a few items
 
@@ -144,3 +147,4 @@ The workflow itself (added in I-001) was correct — `actions/deploy-pages` coul
 | F-023 | Subqueries in FROM | `tests/subquery-in-from.spec.js` |
 | F-027 | Undo/redo for canvas changes | `tests/undo-redo.spec.js` |
 | F-028 | Responsive/mobile layout | `tests/responsive-mobile-layout.spec.js` |
+| F-038 | "Generate a schema for me" DDL helper (domain presets + custom chain) | `tests/generate-schema.spec.js` |

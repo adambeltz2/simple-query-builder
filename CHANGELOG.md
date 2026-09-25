@@ -6,6 +6,20 @@ Versioning follows [Semantic Versioning](https://semver.org/) from `0.x.y`.
 
 ---
 
+## [0.7.0] — 2026-09-25
+
+### Added
+- **✨ "Generate a schema for me"** — a new helper button in the schema panel (next to Parse/Sample/Clear) for users who don't have DDL of their own handy. Opens a modal to pick a starting point:
+  - Five ready-made domain templates (E-commerce, Blog/CMS, Project tracker, Library catalog, SaaS accounts), each 4-5 tables with realistic columns and wired-up foreign keys.
+  - A "Custom topic" option that procedurally builds a chain of 3-8 generic tables named after whatever the user types (e.g. "fitness" → `fitness_categories → fitness_items → fitness_groups → ...`), each FK'd to the one before it — for when none of the presets fit but the user still just wants *something* to click around in.
+  - "Parse it and add all tables to the canvas right away" is checked by default, so one click goes from empty canvas to a fully populated, joined schema — no separate Parse/Add All step needed. Unchecking it just loads the generated DDL into the import box for the user to review first.
+- All templates run through the same `parseDDLInput`/`btnParse` path as hand-pasted DDL, so nothing new needed to happen on the parsing side.
+
+### Testing
+Added `tests/generate-schema.spec.js`: preset-domain generation + auto-populate, custom-topic chain generation with the requested table count, and the auto-populate checkbox correctly gating whether the canvas gets touched. Full suite (77 tests) passes.
+
+---
+
 ## [0.6.0] — 2026-09-25
 
 ### Changed — UI decluttering pass
