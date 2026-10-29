@@ -6,6 +6,16 @@ Versioning follows [Semantic Versioning](https://semver.org/) from `0.x.y`.
 
 ---
 
+## [0.6.1] — 2026-10-29
+
+### Fixed
+- **B-009 fixed:** the schema-tools debug output element had both `id="debugPanel"` and a second `id="debugOut"` on the same `<div>`. Browsers keep only the first `id`, so `document.getElementById('debugOut')` (used by `parseDDLInput`'s `dbg()` helper) always returned `null` — the on-screen parser debug log never rendered, even though its `console.log` output still fired. Predates v0.6.0; that release's accordion restructuring just dropped the already-dead attribute rather than causing the bug. Fixed by giving the element a single `id="debugOut"`, matching the existing JS lookups.
+
+### Testing
+Added `tests/debug-panel.spec.js` asserting that clicking Parse populates and reveals `#debugOut`. Full suite passes.
+
+---
+
 ## [0.6.0] — 2026-09-25
 
 ### Changed — UI decluttering pass
