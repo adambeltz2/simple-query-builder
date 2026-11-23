@@ -8,6 +8,11 @@ All tracked bugs, features, and infrastructure items are resolved. The live app 
 
 ## 🐛 Active Bugs
 
+### B-010 — Dialect toggle didn't affect the Import DDL sample/placeholder ✅ Fixed
+**Root cause:** `S.dialect` was only read by `q()` (identifier quoting), the dialect-mismatch note on Run, and the "Get schema" command box inside the Schema tools accordion. The "Import DDL or sqlite_master output" textarea's placeholder text and the "Sample" button's loaded DDL were both hardcoded to SQLite syntax regardless of the selected dialect, so switching to MySQL/PostgreSQL visibly changed nothing in the main import box.
+
+**Fix (2026-11-23):** added `updateDDLPlaceholder()` (dialect-aware hint text, called on load and on dialect toggle) and a `SAMPLE_DDL` map so "Sample" loads dialect-idiomatic DDL (`AUTO_INCREMENT`/backticks for MySQL, `SERIAL` for PostgreSQL, etc.). Covered by `tests/dialect-aware-sample.spec.js`.
+
 ### B-009 — Debug panel `<div>` has a duplicate `id` attribute ✅ Fixed
 **Root cause:** the schema-tools debug output element had both `id="debugPanel"` and a second `id="debugOut"` on the same tag. HTML parsers keep only the first, so `document.getElementById('debugOut')` (used by `parseDDLInput`'s `dbg()` helper) always returned `null` and the on-page debug log silently never rendered, even though `console.log` still fired. This predates the v0.6.0 UI-decluttering pass — it was already dead before that refactor, which just dropped the redundant attribute.
 
@@ -108,6 +113,7 @@ The workflow itself (added in I-001) was correct — `actions/deploy-pages` coul
 | B-008 | Clear DB error surfacing | `tests/misc-fixes.spec.js` |
 | I-002 | Test fixture `test/sample_schema.sql` | `tests/fixture-schema.spec.js` |
 | B-009 | Debug panel duplicate `id` attribute made `#debugOut` unreachable | `tests/debug-panel.spec.js` |
+| B-010 | Dialect toggle didn't change the Import DDL sample/placeholder; added Snowflake/Oracle/DuckDB dialects | `tests/dialect-aware-sample.spec.js` |
 | F-017 | Export query results as CSV | `tests/export-csv.spec.js` |
 | F-021 | Load an existing `.sqlite`/`.db` file | `tests/load-db-file.spec.js` |
 | I-001 | GitHub Actions deploy to Pages | — (manual verification only) |

@@ -33,8 +33,8 @@ body.light .tnode-hdr{color:var(--blue)}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden}
 ::selection{background:rgba(var(--accent-rgb),.3)}
 :focus-visible{outline:none;box-shadow:var(--ring);border-radius:4px}
-.app{display:grid;grid-template-rows:54px 1fr;height:100vh;background:radial-gradient(circle at 15% -10%,rgba(var(--accent-rgb),.05),transparent 45%),var(--bg)}
-.topbar{display:flex;align-items:center;gap:12px;padding:0 18px;border-bottom:1px solid var(--border);background:var(--panel);box-shadow:var(--shadow-sm);position:relative;z-index:5}
+.app{display:grid;grid-template-rows:auto 1fr;height:100vh;background:radial-gradient(circle at 15% -10%,rgba(var(--accent-rgb),.05),transparent 45%),var(--bg)}
+.topbar{display:flex;align-items:center;gap:12px;padding:8px 18px;border-bottom:1px solid var(--border);background:var(--panel);box-shadow:var(--shadow-sm);position:relative;z-index:5;flex-wrap:wrap;row-gap:6px}
 .logo{font-size:19px;font-weight:800;letter-spacing:-.5px;color:var(--accent);display:flex;align-items:center;gap:7px}
 .logo::before{content:'';width:8px;height:8px;border-radius:2px;background:var(--accent);box-shadow:0 0 10px rgba(var(--accent-rgb),.65);flex-shrink:0}
 .logo span{color:var(--text)}
@@ -49,7 +49,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .mobile-tabs button{flex:1;padding:7px 4px;font-size:11px;font-weight:600;border:none;background:var(--surface);color:var(--muted);border-radius:5px;cursor:pointer;font-family:var(--sans)}
 .mobile-tabs button.on{background:var(--accent);color:#000}
 @media (max-width: 768px) {
-  .app{grid-template-rows:48px auto 1fr}
+  .app{grid-template-rows:auto auto 1fr}
   .mobile-tabs{display:flex}
   .ws{display:block;height:100%;overflow-y:auto}
   .ws .panel, .ws .center{display:none;height:100%}
@@ -240,6 +240,9 @@ body.light tr:hover td{background:rgba(20,24,40,.03)}
     <button class="dbtn on" data-d="sqlite">SQLite</button>
     <button class="dbtn" data-d="mysql">MySQL</button>
     <button class="dbtn" data-d="postgres">PostgreSQL</button>
+    <button class="dbtn" data-d="snowflake">Snowflake</button>
+    <button class="dbtn" data-d="oracle">Oracle</button>
+    <button class="dbtn" data-d="duckdb">DuckDB</button>
   </div>
   <div class="vsep"></div>
   <button class="btn sm" id="btnPasteSQL">↙ Parse SQL</button>
@@ -542,7 +545,7 @@ Use '↙ Parse SQL' in topbar for SELECT queries."></textarea>
 // ══════════════════════════════════════════════════════
 // VERSION
 // ══════════════════════════════════════════════════════
-const APP_VERSION = "0.7.0";
+const APP_VERSION = "0.8.0";
 const BUILD_DATE  = "2026-11-23";
 
 
@@ -1926,7 +1929,7 @@ function runQuery() {
   try {
     const res = DB.exec(sql);
     document.getElementById('runMsg').innerHTML = S.dialect !== 'sqlite'
-      ? `<div class="msg-info">ℹ Run always executes using SQLite semantics — dialect-specific ${S.dialect} syntax may behave differently on a real ${S.dialect === 'mysql' ? 'MySQL' : 'PostgreSQL'} server.</div>`
+      ? `<div class="msg-info">ℹ Run always executes using SQLite semantics — dialect-specific ${S.dialect} syntax may behave differently on a real ${DIALECT_LABELS[S.dialect] || S.dialect} server.</div>`
       : '';
     const area = document.getElementById('resultsArea');
     if (!res.length) {
@@ -2139,12 +2142,17 @@ document.getElementById('btnExportJson').onclick = () => {
 // DIALECT
 // ══════════════════════════════════════════════════════
 document.querySelectorAll('.dbtn').forEach(b => {
-  b.onclick = () => { document.querySelectorAll('.dbtn').forEach(x => x.classList.remove('on')); b.classList.add('on'); S.dialect = b.dataset.d; renderSQL(); renderSchemaCmd(); };
+  b.onclick = () => { document.querySelectorAll('.dbtn').forEach(x => x.classList.remove('on')); b.classList.add('on'); S.dialect = b.dataset.d; renderSQL(); renderSchemaCmd(); updateDDLPlaceholder(); };
 });
 
 // ══════════════════════════════════════════════════════
-// SCHEMA EXTRACTION COMMAND (per dialect, copy-paste ready)
+// DIALECT LABELS, SCHEMA EXTRACTION COMMAND, SAMPLE DDL
 // ══════════════════════════════════════════════════════
+const DIALECT_LABELS = {
+  sqlite: 'SQLite', mysql: 'MySQL', postgres: 'PostgreSQL',
+  snowflake: 'Snowflake', oracle: 'Oracle', duckdb: 'DuckDB'
+};
+
 const SCHEMA_CMDS = {
   sqlite: {
     label: 'SQLite',
@@ -2160,8 +2168,268 @@ ORDER BY type, name;`
   postgres: {
     label: 'PostgreSQL',
     cmd: `pg_dump --schema-only --no-owner --no-privileges -d DBNAME > schema.sql`
+  },
+  snowflake: {
+    label: 'Snowflake',
+    cmd: `SELECT GET_DDL('TABLE', table_catalog||'.'||table_schema||'.'||table_name) AS ddl
+FROM information_schema.tables
+WHERE table_schema = 'PUBLIC' AND table_type = 'BASE TABLE';`
+  },
+  oracle: {
+    label: 'Oracle',
+    cmd: `SELECT DBMS_METADATA.GET_DDL('TABLE', table_name) AS ddl
+FROM user_tables;`
+  },
+  duckdb: {
+    label: 'DuckDB',
+    cmd: `SELECT sql FROM duckdb_tables() WHERE schema_name = 'main';`
   }
 };
+
+// F-??? per-dialect sample schema so "Sample" and the placeholder hint
+// reflect whichever dialect is selected, not always SQLite syntax
+const SAMPLE_DDL = {
+  sqlite: `CREATE TABLE customers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT,
+  city TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE orders (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  customer_id INTEGER NOT NULL,
+  product_id INTEGER,
+  amount REAL,
+  status TEXT,
+  order_date TEXT,
+  CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_orders_product FOREIGN KEY (product_id) REFERENCES products(id)
+);
+CREATE TABLE products (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  category TEXT,
+  price REAL,
+  stock INTEGER
+);
+CREATE TABLE order_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  order_id INTEGER NOT NULL,
+  product_id INTEGER NOT NULL,
+  qty INTEGER,
+  unit_price REAL,
+  CONSTRAINT fk_oi_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  CONSTRAINT fk_oi_product FOREIGN KEY (product_id) REFERENCES products(id)
+);
+CREATE INDEX idx_orders_customer ON orders(customer_id);
+CREATE INDEX idx_orders_status ON orders(status);
+CREATE VIEW v_order_totals AS
+  SELECT o.id, c.name, SUM(oi.qty * oi.unit_price) AS total
+  FROM orders o JOIN customers c ON o.customer_id = c.id
+  JOIN order_items oi ON oi.order_id = o.id GROUP BY o.id;`,
+
+  mysql: `CREATE TABLE \`customers\` (
+  \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+  \`name\` VARCHAR(100) NOT NULL,
+  \`email\` VARCHAR(150),
+  \`city\` VARCHAR(100),
+  \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+CREATE TABLE \`orders\` (
+  \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+  \`customer_id\` INT NOT NULL,
+  \`product_id\` INT,
+  \`amount\` DECIMAL(10,2),
+  \`status\` VARCHAR(20),
+  \`order_date\` DATE,
+  CONSTRAINT \`fk_orders_customer\` FOREIGN KEY (\`customer_id\`) REFERENCES \`customers\`(\`id\`) ON DELETE RESTRICT,
+  CONSTRAINT \`fk_orders_product\` FOREIGN KEY (\`product_id\`) REFERENCES \`products\`(\`id\`)
+) ENGINE=InnoDB;
+CREATE TABLE \`products\` (
+  \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+  \`name\` VARCHAR(100) NOT NULL,
+  \`category\` VARCHAR(50),
+  \`price\` DECIMAL(10,2),
+  \`stock\` INT
+) ENGINE=InnoDB;
+CREATE TABLE \`order_items\` (
+  \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+  \`order_id\` INT NOT NULL,
+  \`product_id\` INT NOT NULL,
+  \`qty\` INT,
+  \`unit_price\` DECIMAL(10,2),
+  CONSTRAINT \`fk_oi_order\` FOREIGN KEY (\`order_id\`) REFERENCES \`orders\`(\`id\`) ON DELETE CASCADE,
+  CONSTRAINT \`fk_oi_product\` FOREIGN KEY (\`product_id\`) REFERENCES \`products\`(\`id\`)
+) ENGINE=InnoDB;
+CREATE INDEX idx_orders_customer ON \`orders\`(\`customer_id\`);
+CREATE INDEX idx_orders_status ON \`orders\`(\`status\`);`,
+
+  postgres: `CREATE TABLE customers (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT,
+  city TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE orders (
+  id SERIAL PRIMARY KEY,
+  customer_id INTEGER NOT NULL,
+  product_id INTEGER,
+  amount NUMERIC(10,2),
+  status TEXT,
+  order_date DATE,
+  CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_orders_product FOREIGN KEY (product_id) REFERENCES products(id)
+);
+CREATE TABLE products (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  category TEXT,
+  price NUMERIC(10,2),
+  stock INTEGER
+);
+CREATE TABLE order_items (
+  id SERIAL PRIMARY KEY,
+  order_id INTEGER NOT NULL,
+  product_id INTEGER NOT NULL,
+  qty INTEGER,
+  unit_price NUMERIC(10,2),
+  CONSTRAINT fk_oi_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  CONSTRAINT fk_oi_product FOREIGN KEY (product_id) REFERENCES products(id)
+);
+CREATE INDEX idx_orders_customer ON orders(customer_id);
+CREATE INDEX idx_orders_status ON orders(status);`,
+
+  snowflake: `CREATE TABLE customers (
+  id INTEGER AUTOINCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(150),
+  city VARCHAR(100),
+  created_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+);
+CREATE TABLE orders (
+  id INTEGER AUTOINCREMENT PRIMARY KEY,
+  customer_id INTEGER NOT NULL,
+  product_id INTEGER,
+  amount NUMBER(10,2),
+  status VARCHAR(20),
+  order_date DATE,
+  CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers(id),
+  CONSTRAINT fk_orders_product FOREIGN KEY (product_id) REFERENCES products(id)
+);
+CREATE TABLE products (
+  id INTEGER AUTOINCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  category VARCHAR(50),
+  price NUMBER(10,2),
+  stock INTEGER
+);
+CREATE TABLE order_items (
+  id INTEGER AUTOINCREMENT PRIMARY KEY,
+  order_id INTEGER NOT NULL,
+  product_id INTEGER NOT NULL,
+  qty INTEGER,
+  unit_price NUMBER(10,2),
+  CONSTRAINT fk_oi_order FOREIGN KEY (order_id) REFERENCES orders(id),
+  CONSTRAINT fk_oi_product FOREIGN KEY (product_id) REFERENCES products(id)
+);`,
+
+  oracle: `CREATE TABLE customers (
+  id NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  name VARCHAR2(100) NOT NULL,
+  email VARCHAR2(150),
+  city VARCHAR2(100),
+  created_at TIMESTAMP DEFAULT SYSTIMESTAMP
+);
+CREATE TABLE orders (
+  id NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  customer_id NUMBER NOT NULL,
+  product_id NUMBER,
+  amount NUMBER(10,2),
+  status VARCHAR2(20),
+  order_date DATE,
+  CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers(id),
+  CONSTRAINT fk_orders_product FOREIGN KEY (product_id) REFERENCES products(id)
+);
+CREATE TABLE products (
+  id NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  name VARCHAR2(100) NOT NULL,
+  category VARCHAR2(50),
+  price NUMBER(10,2),
+  stock NUMBER
+);
+CREATE TABLE order_items (
+  id NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  order_id NUMBER NOT NULL,
+  product_id NUMBER NOT NULL,
+  qty NUMBER,
+  unit_price NUMBER(10,2),
+  CONSTRAINT fk_oi_order FOREIGN KEY (order_id) REFERENCES orders(id),
+  CONSTRAINT fk_oi_product FOREIGN KEY (product_id) REFERENCES products(id)
+);`,
+
+  duckdb: `CREATE TABLE customers (
+  id INTEGER PRIMARY KEY,
+  name VARCHAR NOT NULL,
+  email VARCHAR,
+  city VARCHAR,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE orders (
+  id INTEGER PRIMARY KEY,
+  customer_id INTEGER NOT NULL,
+  product_id INTEGER,
+  amount DECIMAL(10,2),
+  status VARCHAR,
+  order_date DATE,
+  CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers(id),
+  CONSTRAINT fk_orders_product FOREIGN KEY (product_id) REFERENCES products(id)
+);
+CREATE TABLE products (
+  id INTEGER PRIMARY KEY,
+  name VARCHAR NOT NULL,
+  category VARCHAR,
+  price DECIMAL(10,2),
+  stock INTEGER
+);
+CREATE TABLE order_items (
+  id INTEGER PRIMARY KEY,
+  order_id INTEGER NOT NULL,
+  product_id INTEGER NOT NULL,
+  qty INTEGER,
+  unit_price DECIMAL(10,2),
+  CONSTRAINT fk_oi_order FOREIGN KEY (order_id) REFERENCES orders(id),
+  CONSTRAINT fk_oi_product FOREIGN KEY (product_id) REFERENCES products(id)
+);`
+};
+
+const DDL_PLACEHOLDER_HINT = {
+  sqlite: `For sqlite_master, run:
+  SELECT type, name, tbl_name, sql
+  FROM sqlite_master
+  WHERE sql IS NOT NULL
+  ORDER BY type, name;`,
+  mysql: `To dump schema, run:
+  mysqldump --no-data --skip-comments -u USER -p DBNAME > schema.sql`,
+  postgres: `To dump schema, run:
+  pg_dump --schema-only --no-owner --no-privileges -d DBNAME > schema.sql`,
+  snowflake: `To get DDL, run:
+  SELECT GET_DDL('TABLE', table_name) FROM information_schema.tables
+  WHERE table_schema = 'PUBLIC';`,
+  oracle: `To get DDL, run:
+  SELECT DBMS_METADATA.GET_DDL('TABLE', table_name) FROM user_tables;`,
+  duckdb: `To get DDL, run:
+  SELECT sql FROM duckdb_tables() WHERE schema_name = 'main';`
+};
+
+function updateDDLPlaceholder() {
+  const d = S.dialect;
+  const hint = DDL_PLACEHOLDER_HINT[d] || DDL_PLACEHOLDER_HINT.sqlite;
+  const label = DIALECT_LABELS[d] || 'SQLite';
+  document.getElementById('ddlIn').placeholder =
+    `Paste ${label} CREATE TABLE DDL here${d === 'sqlite' ? ' (or sqlite_master INSERT output)' : ''}.\n\n${hint}\n\nDO NOT paste SELECT queries here.\nUse '↙ Parse SQL' in topbar for SELECT queries.`;
+}
 
 function renderSchemaCmd() {
   const info = SCHEMA_CMDS[S.dialect] || SCHEMA_CMDS.sqlite;
@@ -2173,6 +2441,7 @@ document.getElementById('btnCopySchemaCmd').onclick = () => {
   navigator.clipboard.writeText(info.cmd).then(() => toast('Copied!'));
 };
 renderSchemaCmd();
+updateDDLPlaceholder();
 
 // ══════════════════════════════════════════════════════
 // PARSE DDL BUTTON
@@ -2344,45 +2613,7 @@ document.getElementById('btnDeleteSchema').onclick = () => {
 // SAMPLE DATA
 // ══════════════════════════════════════════════════════
 document.getElementById('btnSample').onclick = () => {
-  document.getElementById('ddlIn').value = `CREATE TABLE customers (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
-  email TEXT,
-  city TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-CREATE TABLE orders (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  customer_id INTEGER NOT NULL,
-  product_id INTEGER,
-  amount REAL,
-  status TEXT,
-  order_date TEXT,
-  CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT,
-  CONSTRAINT fk_orders_product FOREIGN KEY (product_id) REFERENCES products(id)
-);
-CREATE TABLE products (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
-  category TEXT,
-  price REAL,
-  stock INTEGER
-);
-CREATE TABLE order_items (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  order_id INTEGER NOT NULL,
-  product_id INTEGER NOT NULL,
-  qty INTEGER,
-  unit_price REAL,
-  CONSTRAINT fk_oi_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-  CONSTRAINT fk_oi_product FOREIGN KEY (product_id) REFERENCES products(id)
-);
-CREATE INDEX idx_orders_customer ON orders(customer_id);
-CREATE INDEX idx_orders_status ON orders(status);
-CREATE VIEW v_order_totals AS
-  SELECT o.id, c.name, SUM(oi.qty * oi.unit_price) AS total
-  FROM orders o JOIN customers c ON o.customer_id = c.id
-  JOIN order_items oi ON oi.order_id = o.id GROUP BY o.id;`;
+  document.getElementById('ddlIn').value = SAMPLE_DDL[S.dialect] || SAMPLE_DDL.sqlite;
 
   document.getElementById('seedIn').value = `CREATE TABLE IF NOT EXISTS customers(id INTEGER PRIMARY KEY,name TEXT,email TEXT,city TEXT,created_at TEXT);
 CREATE TABLE IF NOT EXISTS products(id INTEGER PRIMARY KEY,name TEXT,category TEXT,price REAL,stock INTEGER);
