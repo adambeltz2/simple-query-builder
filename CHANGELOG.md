@@ -6,6 +6,24 @@ Versioning follows [Semantic Versioning](https://semver.org/) from `0.x.y`.
 
 ---
 
+## [0.7.0] — 2026-11-23
+
+### Changed — visual design pass
+CSS-only polish across the whole app; no markup, IDs, or behavior changed, so every existing Playwright test still targets the same elements.
+- Added shared design tokens (`--ease`, `--shadow-sm/md/lg`, `--ring`, `--accent-rgb`) in both the dark and light themes for consistent elevation and accessible focus rings.
+- Topbar: added a subtle shadow, an accent glow dot in the logo, and a bordered dialect toggle.
+- Buttons: hover now lifts with a soft shadow; the primary (Run) button gets an accent glow to read as the main CTA; danger/blue variants get matching colored glows on hover.
+- Canvas: added a soft radial accent wash behind the dot grid, refined the minimap with a blur backdrop and shadow, deeper table-node shadows with a colored ring on hover/selected.
+- Builder sections, schema cards, and the progressive-disclosure accordions got subtle hover borders/shadows and smoother transitions instead of flat state changes.
+- SQL output pane, results table, modal, and toast got refined shadows/elevation, a modal fade/pop-in animation, and a toast slide-in.
+- Scrollbars widened slightly (3px → 5px) for easier grabbing.
+- Added a `:focus-visible` ring across the app for keyboard-navigation accessibility.
+
+### Testing
+No new tests needed (CSS-only, no DOM/behavior changes). Full suite (75 tests) passes unchanged. Verified both themes visually via a Playwright screenshot pass.
+
+---
+
 ## [0.6.1] — 2026-10-29
 
 ### Fixed
