@@ -3,7 +3,7 @@
 A browser-native visual SQL query builder. No backend, no build step, no dependencies to install. Drop `index.html` anywhere and open it.
 
 [![GitHub Pages](https://img.shields.io/badge/hosted-GitHub%20Pages-blue)](https://adambeltz2.github.io/simple-query-builder/)
-![Version](https://img.shields.io/badge/version-0.7.0-green)
+![Version](https://img.shields.io/badge/version-0.8.0-green)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-ffdd00?logo=buymeacoffee&logoColor=black)](https://www.buymeacoffee.com/adambeltz)
 
@@ -24,12 +24,12 @@ Queries can be run immediately against an in-browser SQLite database powered by 
 ### Schema Import
 - Paste raw `CREATE TABLE` DDL directly, or upload a `.sql` file
 - Paste the full output of a `sqlite_master` query (including indexes, triggers, views) — the parser auto-detects the format
-- PostgreSQL (`SERIAL`, `::casts`, schema-qualified names) and MySQL (`AUTO_INCREMENT`, `ENGINE=`, backtick identifiers) DDL variants are supported
+- PostgreSQL (`SERIAL`, `::casts`, schema-qualified names) and MySQL (`AUTO_INCREMENT`, `ENGINE=`, backtick identifiers) DDL variants are supported, alongside generic ANSI-style DDL from Snowflake, Oracle, and DuckDB
 - Foreign key relationships are detected from inline `REFERENCES` and standalone `CONSTRAINT ... FOREIGN KEY` definitions
 - Views and triggers are recognized and catalogued (views shown in the Views tab, triggers silently ignored)
 - Re-parsing shows a diff against the previously loaded schema (added/dropped tables and columns)
 - Export the parsed schema as JSON, or save it under a name in `localStorage` to reload later
-- Get your schema out of a real database with the built-in per-dialect command shown in the schema panel (a `sqlite_master` query, `mysqldump`, or `pg_dump`)
+- Get your schema out of a real database with the built-in per-dialect command shown in the schema panel (a `sqlite_master` query, `mysqldump`, `pg_dump`, or the Snowflake/Oracle/DuckDB equivalents)
 
 ### Visual Canvas
 - Drag table cards freely on the canvas; collapse a card to just its header, or color-code it via right-click
@@ -51,7 +51,7 @@ Queries can be run immediately against an in-browser SQLite database powered by 
 - Save the current query per-schema (survives a refresh) or share it as a URL
 
 ### SQL Dialects
-Switch between SQLite, MySQL, and PostgreSQL quoting styles at any time.
+Switch between SQLite, MySQL, PostgreSQL, Snowflake, Oracle, and DuckDB at any time — each affects identifier quoting, the "Sample" DDL, and the per-dialect schema-export command.
 
 ### Run Queries
 Seed the in-browser SQLite database (Seed DB tab) with `CREATE TABLE` + `INSERT` statements — or drop in an existing `.sqlite`/`.db`/`.sqlite3` file to load its schema and data directly — then run your visually-built query and see results in a live table. Edit a result cell directly (single-table queries) to issue an `UPDATE`, view the `EXPLAIN QUERY PLAN`, export results as CSV or JSON, and revisit past runs from the Query History tab.
